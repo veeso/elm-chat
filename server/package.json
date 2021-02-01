@@ -1,0 +1,19 @@
+{
+  "name": "chat-server",
+  "version": "0.1.0",
+  "description": "Backend for my elm-chat",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/veeso/elm-chat.git"
+  },
+  "author": "Christian Visintin",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/veeso/elm-chat/issues"
+  },
+  "homepage": "https://github.com/veeso/elm-chat#readme"
+}
