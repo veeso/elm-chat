@@ -2,9 +2,11 @@
   "name": "chat-server",
   "version": "0.1.0",
   "description": "Backend for my elm-chat",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack",
+    "tsc": "tsc",
+    "test": "mocha -r ts-node/register test/**/*.ts"
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,32 @@
   "bugs": {
     "url": "https://github.com/veeso/elm-chat/issues"
   },
-  "homepage": "https://github.com/veeso/elm-chat#readme"
+  "homepage": "https://github.com/veeso/elm-chat#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-graphql": "^0.12.0",
+    "getopts": "^2.2.5",
+    "graphql": "^15.5.0",
+    "helmet": "^4.4.1",
+    "log4js": "^6.3.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.2",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.19.0",
+    "@types/chai": "^4.2.14",
+    "@types/express": "^4.17.11",
+    "@types/getopts": "^2.1.0",
+    "@types/mocha": "^8.2.0",
+    "@types/morgan": "^1.9.2",
+    "@types/multer": "^1.4.5",
+    "@types/node": "^14.14.25",
+    "chai": "^4.3.0",
+    "mocha": "^8.2.1",
+    "webpack": "^5.21.1",
+    "webpack-cli": "^4.5.0",
+    "webpack-node-externals": "^2.5.2"
+  }
 }
