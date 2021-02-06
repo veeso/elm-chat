@@ -123,3 +123,5 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/elm,node
 
+# Runtime
+assets/avatar/
