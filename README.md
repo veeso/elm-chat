@@ -4,6 +4,7 @@ Developed by Christian Visintin
 
 - [Elm - Chat](#elm---chat)
   - [Introduction](#introduction)
+  - [Project tree](#project-tree)
   - [Setup](#setup)
   - [Features](#features)
   - [API](#api)
@@ -35,6 +36,24 @@ Developed by Christian Visintin
 Elm chat is a simple project I've made to improve my Elm knowledge. The project consists in a web application where you first access to the chat with a username (which must be unique), and then you're able to chat with anybody signed in in the chat.
 
 The backend for this application runs on NodeJS, while the front-end is, obviously, written in Elm.
+
+## Project tree
+
+- `assets/`: contains project assets
+  - `avatar/`: avatar directory, where user avatars will be uploaded
+- `server/`: backend source directory
+- `src/`: elm frontendn source directory
+  - `Data/`: These modules describe common data structures, and expose ways to translate them into other data structures (e.g. json deserialization).
+  - `Pages/`: These modules hold the logic for the individual pages in the app.
+  - `Requests/`: These modules provides functions to interface with the chat backend.
+  - `Views/`: These modules hold reusable views which multiple Page modules import.
+  - `Main.elm`: application entry point
+  - `Ports.elm`: tracks all ports used by the application
+  - `Route.elm`: This module exposes functions to translate URLs in the browser's Location bar to logical "pages" in the application, as well as functions to effect Location bar changes.
+  - `Utils.elm`: various utils functions
+- `elm.json`: elm project setup
+- `LICENSE`: Project license
+- `README.md`: reame
 
 ## Setup
 
