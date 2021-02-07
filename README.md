@@ -12,6 +12,7 @@ Developed by Christian Visintin
     - [Entities](#entities)
       - [User](#user)
       - [Message](#message)
+    - [Jwt](#jwt)
     - [Requests](#requests)
       - [Sign in](#sign-in)
       - [Sign up](#sign-up)
@@ -45,12 +46,17 @@ To setup this project you first need to satisfy these requirements:
 
 Then we need to build the project
 
-In order to setup the backend we need to build it:
+In order to setup the backend we need to build it and then run it with node:
 
 ```sh
+# Setup assets directory
+mkdir -p assets/avatar/
+# Build server
 cd server/
 npm install
 npm build
+# Start server
+node build/index.js -l DEBUG -d ../assets/
 ```
 
 while for the frontend, we'll build it using elm:
@@ -107,6 +113,10 @@ A message has these attributes:
 - read (*boolean*): message has been read once
 
 ---
+
+### Jwt
+
+The API server uses JWT to store authentication data. The JWT must be stored as a cookie named as `user`.
 
 ### Requests
 
