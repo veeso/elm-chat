@@ -70,6 +70,7 @@ export default class MessageService {
         });
       }
     );
+    this.logger.info("Message service started!");
   }
 
   /**

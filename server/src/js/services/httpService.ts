@@ -7,12 +7,14 @@
 // Express
 import express from "express";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import jwt from "express-jwt";
 import morgan from "morgan"; // Net logging
 import helmet from "helmet"; // secure express
 import multer from "multer"; // handle multipart
 import http from "http";
 import jsonwebtoken from "jsonwebtoken";
+import { unlink, unlinkSync } from "fs";
 // Misc
 import { Logger } from "log4js";
 // Lib
@@ -44,6 +46,8 @@ export default class HttpService {
     this.service.use(morgan("dev"));
     // Helmet
     this.service.use(helmet());
+    // Cookie parser
+    this.service.use(cookieParser());
     // Multer
     this.avatarUploadHnd = multer({ dest: assetsDir + "/avatar/" });
     // Make jwt secret
@@ -57,13 +61,22 @@ export default class HttpService {
     }
     this.jwtSecret = secret;
     // Jwt options
-    const jwtOptions = {
+    const jwtOptions: jwt.Options = {
       secret: this.jwtSecret,
       algorithms: ["HS256"],
       requestProperty: "user",
+      getToken: (req) => {
+        if (req.cookies.user) {
+          return req.cookies.user;
+        } else {
+          return null;
+        }
+      },
     };
     this.service.use(
-      jwt(jwtOptions).unless({ path: ["/api/auth/signUp", "/api/auth/signIn"] })
+      jwt(jwtOptions).unless({
+        path: ["/api/auth/signUp", "/api/auth/signIn", "/api/auth/authed"],
+      })
     );
     // Make storage
     this.store = new Storage();
@@ -87,6 +100,19 @@ export default class HttpService {
     this.chat.stop(() => {
       this.logger.debug("Message service stopped!");
       this.server.close();
+      // Clean assets...
+      this.logger.debug("Cleaning assets");
+      for (const u of this.store.getUsers()) {
+        if (u.avatar) {
+          try {
+            unlinkSync(u.avatar);
+            this.logger.debug("Removed avatar at", u.avatar);
+          } catch (err) {
+            this.logger.error("Could not remove avatar at", u.avatar);
+          }
+        }
+      }
+      this.logger.info("Assets cleaned");
       this.logger.info("service stopped!");
       if (onStopped) {
         onStopped();
@@ -102,6 +128,8 @@ export default class HttpService {
 
   private setup() {
     // API Requests
+
+    // Sign in
 
     this.service.post("/api/auth/signIn", (req, res) => {
       if ("username" in req.body && "secret" in req.body) {
@@ -125,6 +153,7 @@ export default class HttpService {
             const token = jsonwebtoken.sign({ username }, this.jwtSecret, {
               algorithm: "HS256",
             });
+            res.cookie("user", token);
             res.send({ jwt: token });
             // Set user online
             this.store.connectUser(username);
@@ -141,65 +170,151 @@ export default class HttpService {
         res.sendStatus(400);
       }
     });
+    this.service.all("/api/auth/signIn", (req, res) => {
+      res.sendStatus(405);
+    });
+
+    // Sign up
 
     this.service.post(
       "/api/auth/signUp",
       this.avatarUploadHnd.single("avatar"),
       (req, res) => {
         // Check other parameters
-        if (req.body.username && req.body.secret) {
-          const username = req.body.username;
-          const password = sha512(req.body.password);
-          // Check if user already exists
-          if (!this.store.searchUser(username)) {
-            // Register new user
-            const avatar = req.file ? req.file.destination : null;
-            try {
-              this.store.registerUser(username, avatar, password);
-              this.logger.info("Registered new user", username);
-              // Sign in
-              const token = jsonwebtoken.sign({ username }, this.jwtSecret, {
-                algorithm: "HS256",
-              });
-              res.send({ jwt: token });
-              // Set user online
-              this.store.connectUser(username);
-            } catch (err) {
-              this.logger.error("Could not register user:", err);
-              res.sendStatus(500);
+        if (req.body.data) {
+          const data = JSON.parse(req.body.data);
+          if (data.username && data.secret) {
+            const username = data.username;
+            const password = sha512(data.secret);
+            // Check if user already exists
+            if (!this.store.searchUser(username)) {
+              this.logger.debug(
+                "Ok,",
+                username,
+                "is not used; we can register it"
+              );
+              // Register new user
+              const avatar = req.file
+                ? req.file.destination + "/" + req.file.filename
+                : null;
+              if (!avatar) {
+                this.logger.debug(username, "didn't provide any avatar");
+              }
+              this.logger.debug("User", username, "has avatar at", avatar);
+              try {
+                this.store.registerUser(username, avatar, password);
+                this.logger.info("Registered new user", username);
+                // Sign in
+                const token = jsonwebtoken.sign({ username }, this.jwtSecret, {
+                  algorithm: "HS256",
+                });
+                res.cookie("user", token);
+                res.send({ jwt: token });
+                // Set user online
+                this.store.connectUser(username);
+              } catch (err) {
+                // Remove file if set
+                if (avatar) {
+                  unlink(avatar, () => {
+                    this.logger.debug("Removed bad avatar at", avatar);
+                  });
+                }
+                this.logger.error("Could not register user:", err);
+                res.sendStatus(500);
+              }
+            } else {
+              this.logger.debug(
+                "Tried to register already existing user:",
+                username
+              );
+              res.sendStatus(409);
             }
           } else {
-            this.logger.debug(
-              "Tried to register already existing user:",
-              username
-            );
-            res.sendStatus(409);
+            this.logger.debug("Received sign up without credentials");
+            res.sendStatus(400);
           }
         } else {
+          this.logger.debug("Received sign up without 'data'");
           res.sendStatus(400);
         }
       }
     );
+    this.service.all("/api/auth/signUp", (req, res) => {
+      res.sendStatus(405);
+    });
+
+    // Sign out
 
     this.service.post("/api/auth/signOut", (req, res) => {
-      this.logger.debug("User signed out");
-      res.sendStatus(200);
+      // Delete coookie
+      res.cookie("user", null);
+      // Set user online
+      const username = req.user.username;
+      const user = this.store.searchUser(username);
+      if (user) {
+        this.store.disconnectUser(username);
+        // Delete cookie
+        res.send({});
+        this.logger.debug("User", username, "signed out");
+      } else {
+        res.sendStatus(404); // User not found
+      }
     });
+    this.service.all("/api/auth/signOut", (req, res) => {
+      res.sendStatus(405);
+    });
+
+    // Authed
+
+    this.service.get("/api/auth/authed", (req, res) => {
+      if (req.cookies.user) {
+        // verify the cookie
+        try {
+          jsonwebtoken.verify(req.cookies.user, this.jwtSecret, {
+            algorithms: ["HS256"],
+          });
+          res.send({});
+        } catch (err) {
+          this.logger.debug("JWT has expired for user");
+          res.cookie("user", null);
+          res.sendStatus(401);
+        }
+      } else {
+        res.sendStatus(401);
+      }
+    });
+    this.service.all("/api/auth/authed", (req, res) => {
+      res.sendStatus(405);
+    });
+
+    // Users
 
     this.service.get("/api/chat/users", (req, res) => {
       const users = this.store.getUsers();
       // Serialize
       const payload: Array<any> = new Array();
       for (const user of users) {
+        let avatar: string | null = user.avatar;
+        if (avatar) {
+          // Process avatar...
+          const avatarTokens = avatar.split("/");
+          const filename = avatarTokens[avatarTokens.length - 1];
+          avatar = "/assets/avatar/" + filename;
+        }
         payload.push({
           username: user.username,
-          avatar: user.avatar,
+          avatar: avatar,
           lastActivity: user.lastActivity.toISOString(),
           online: user.online,
         });
       }
       res.send(payload);
     });
+    this.service.all("/api/chat/users", (req, res) => {
+      res.sendStatus(405);
+    });
+
+    // History
 
     this.service.get("/api/chat/history/:username", (req, res) => {
       const client = req.user.username;
@@ -217,12 +332,14 @@ export default class HttpService {
             other,
             err
           );
-          res.sendStatus(500);
+          res.sendStatus(404);
         }
       } else {
         res.sendStatus(400);
       }
     });
+
+    // Set read
 
     this.service.post("/api/chat/setread/:id", (req, res) => {
       const messageId = req.params.id;
@@ -230,13 +347,24 @@ export default class HttpService {
         try {
           this.store.markMessageAsRead(messageId);
           this.logger.debug("Marked message", messageId, "as read");
-          res.sendStatus(200);
+          res.send({});
         } catch (err) {
           this.logger.error("Could not set message", messageId, "as read", err);
-          res.sendStatus(500);
+          res.sendStatus(404);
         }
       } else {
         res.sendStatus(400);
+      }
+    });
+    this.service.all("/api/chat/setread/", (req, res) => {
+      res.sendStatus(405);
+    });
+
+    // Error handler
+
+    this.service.use((err: any, req: any, res: any, next: any) => {
+      if (err.name === "UnauthorizedError") {
+        res.sendStatus(401);
       }
     });
 
@@ -248,22 +376,7 @@ export default class HttpService {
       this.logger.debug(username, "has started a websockets session");
       this.chat.accept(req, socket, head, username);
     });
+
+    this.logger.info("HTTP Service started!");
   }
 }
-
-/*
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const tmpdir = process.cwd() + '/tmp/';
-    console.log(tmpdir);
-    cb(null, tmpdir);
-  },
-  filename: (req, file, cb) => {
-    const date = new Date();
-    //Build up filename
-    const filename = file.fieldname + '-' + date.toISOString() + '-' + uuidv4() + '.jpg';
-    cb(null, filename);
-  }
-});
-
-*/

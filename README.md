@@ -16,6 +16,7 @@ Developed by Christian Visintin
       - [Sign in](#sign-in)
       - [Sign up](#sign-up)
       - [Sign out](#sign-out)
+      - [Auth](#auth)
       - [Get users](#get-users)
       - [Get Conversation](#get-conversation)
       - [Mark message as read](#mark-message-as-read)
@@ -142,7 +143,9 @@ this request might return the following error codes:
 
 #### Sign up
 
-In order to sign up (register user), you must send a **POST** to `/api/auth/signUp` with the following parameters:
+In order to sign up (register user), you must send a **POST** to `/api/auth/signUp` with the following parameters.
+
+As multipart/form-data content, provide as `data`:
 
 ```json
 {
@@ -151,7 +154,7 @@ In order to sign up (register user), you must send a **POST** to `/api/auth/sign
 }
 ```
 
-in addition the field `avatar` must contain a file.
+in addition, the field `avatar` may contain a file.
 
 the following response is returned:
 
@@ -176,6 +179,14 @@ In order to sign out, you must send a **POST** to `/api/auth/signOut` with the f
 this request might return the following error codes:
 
 **403**: if the user is not signed in
+
+#### Auth
+
+In order to check if still authenticated, you must send a **GET** to `/api/auth/authed`.
+
+this request might return the following error codes:
+
+**401**: if the user is not signed in
 
 #### Get users
 
@@ -218,14 +229,16 @@ the following response is returned:
 this request might return the following error codes:
 
 - **403**: if the user is not signed in
+- **404**: if the provided username doesn't exist
 
 #### Mark message as read
 
-In order to mark a message as read, you must send a **POST** to `/api/chat/setread/{UUID}`.
+In order to mark a message as read, you must send a **POST** to `/api/chat/setread/{MESSAGE_ID}`.
 
 this request might return the following error codes:
 
 - **403**: if the user is not signed in
+- **404**: if the provided message doesn't exist
 
 ### WS Protocol - Message Service
 

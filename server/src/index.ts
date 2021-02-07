@@ -74,6 +74,7 @@ const atExit = () => {
     logger.debug("Stopping http service...");
     httpService.stop(() => {
       logger.debug("http service stopped!");
+      httpService = null;
     });
   }
   logger.info("chat-server stopped!");
