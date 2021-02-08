@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.User exposing (..)
+module Data.User exposing (User, usersDecoder)
 
 -- Dependencies
 
