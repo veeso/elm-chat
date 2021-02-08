@@ -5,16 +5,16 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Utils exposing (lastActivityDecoder)
+module Utils exposing (dateDecoder)
 
 import Date
 import Json.Decode exposing (Decoder, fail, succeed)
 
 
-{-| Custom decoder for last activity parameter
+{-| Custom decoder for Date.Date
 -}
-lastActivityDecoder : String -> Decoder Date.Date
-lastActivityDecoder isodate =
+dateDecoder : String -> Decoder Date.Date
+dateDecoder isodate =
     case Date.fromIsoString isodate of
         Ok dt ->
             succeed dt

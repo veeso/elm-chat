@@ -11,7 +11,7 @@ module Data.User exposing (User, usersDecoder)
 
 import Date
 import Json.Decode exposing (Decoder, andThen, bool, field, list, map4, maybe, string)
-import Utils exposing (lastActivityDecoder)
+import Utils exposing (dateDecoder)
 
 
 {-| User describes a user registered in the chat application,
@@ -49,5 +49,5 @@ userDecoder =
     map4 User
         (field "username" string)
         (maybe (field "avatar" string))
-        (field "lastActivity" string |> andThen lastActivityDecoder)
+        (field "lastActivity" string |> andThen dateDecoder)
         (field "online" bool)
