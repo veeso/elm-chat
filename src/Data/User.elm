@@ -10,8 +10,8 @@ module Data.User exposing (User, usersDecoder)
 -- Dependencies
 
 import Date
-import Html exposing (dt)
-import Json.Decode exposing (Decoder, andThen, bool, fail, field, list, map4, maybe, string, succeed)
+import Json.Decode exposing (Decoder, andThen, bool, field, list, map4, maybe, string)
+import Utils exposing (lastActivityDecoder)
 
 
 {-| User describes a user registered in the chat application,
@@ -51,15 +51,3 @@ userDecoder =
         (maybe (field "avatar" string))
         (field "lastActivity" string |> andThen lastActivityDecoder)
         (field "online" bool)
-
-
-{-| Custom decoder for last activity parameter
--}
-lastActivityDecoder : String -> Decoder Date.Date
-lastActivityDecoder isodate =
-    case Date.fromIsoString isodate of
-        Ok dt ->
-            succeed dt
-
-        Err err ->
-            fail ("Could not parse 'lastActivity': " ++ err)
