@@ -4,8 +4,6 @@
  * @license "The Unlicense"
  */
 
-import User from "./user";
-
 export default interface Message {
   id: string;
   from: string;

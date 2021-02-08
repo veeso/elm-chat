@@ -250,7 +250,10 @@ the following response is returned:
     "id": "1cdc2990-2e81-4ac5-9983-43a24ecdee19",
     "datetime": "2021-02-06T12:43:00Z",
     "body": "hello world!",
-    "read": false
+    "from": "foo",
+    "to": "bar",
+    "read": false,
+    "recv": false
   }
 ]
 ```
