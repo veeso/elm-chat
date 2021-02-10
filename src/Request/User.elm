@@ -9,7 +9,7 @@ module Request.User exposing (Msg, signin)
 
 import Data.Jwt exposing (Jwt, jwtDecoder)
 import Http
-import Json.Decode exposing (Decoder, field, int, string)
+import Json.Decode exposing (Decoder, andThen, field, string)
 import Json.Encode as Encode
 
 
@@ -31,7 +31,7 @@ signin username password =
     Http.post
         { url = ":3000/api/auth/signIn"
         , body = Http.jsonBody user
-        , expect = Http.expectJson SignedIn (authTokenDecoder |> jwtDecoder)
+        , expect = Http.expectJson SignedIn (authTokenDecoder |> andThen jwtDecoder)
         }
 
 

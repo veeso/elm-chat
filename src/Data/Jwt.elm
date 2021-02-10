@@ -7,8 +7,8 @@
 
 module Data.Jwt exposing (Jwt, jwtDecoder)
 
-import Json.Decode exposing (Decoder, field, int, map3, string)
-import Jwt exposing (JwtError, decodeToken)
+import Json.Decode exposing (Decoder, fail, field, int, map3, string, succeed)
+import Jwt exposing (decodeToken, errorToString)
 
 
 {-| Jwt contains the parameters contained in the JWT
@@ -26,9 +26,14 @@ type alias Jwt =
 {-| Decodes a JWT entity from JSON and deserializes it into a User
 Then converts the JWT into a Jwt structure
 -}
-jwtDecoder : String -> Result JwtError Jwt
+jwtDecoder : String -> Decoder Jwt
 jwtDecoder token =
-    decodeToken jwtJsonDecoder token
+    case decodeToken jwtJsonDecoder token of
+        Ok jwt ->
+            succeed jwt
+
+        Err err ->
+            fail (errorToString err)
 
 
 jwtJsonDecoder : Decoder Jwt
