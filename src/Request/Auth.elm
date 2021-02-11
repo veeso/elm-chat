@@ -70,7 +70,7 @@ signup username password avatar =
 authed : Cmd Msg
 authed =
     Http.get
-        { url = " :3000/api/auth/authed"
+        { url = ":3000/api/auth/authed"
         , expect = Http.expectWhatever Authed
         }
 
