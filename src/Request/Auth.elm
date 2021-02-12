@@ -52,15 +52,16 @@ signup username password avatar =
     Http.post
         { url = ":3000/api/auth/signUp"
         , body =
-            case avatar of
-                Just file ->
-                    multipartBody
-                        [ stringPart "data" <| Encode.encode 0 user
-                        , filePart "avatar" file
-                        ]
+            multipartBody
+                ((stringPart "data" <| Encode.encode 0 user)
+                    :: (case avatar of
+                            Just file ->
+                                [ filePart "avatar" file ]
 
-                Nothing ->
-                    multipartBody [ stringPart "data" <| Encode.encode 0 user ]
+                            Nothing ->
+                                []
+                       )
+                )
         , expect = Http.expectJson SignedIn (authTokenDecoder |> andThen jwtDecoder)
         }
 

@@ -5,12 +5,13 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.Message exposing (Conversation, Message, conversationDecoder)
+module Data.Message exposing (Conversation, Message, conversationDecoder, encodeMessage, messageDecoder)
 
 -- Dependencies
 
 import Date
 import Json.Decode exposing (Decoder, andThen, bool, field, list, map6, string)
+import Json.Encode as Encode
 import Utils exposing (dateDecoder)
 
 
@@ -62,3 +63,17 @@ messageDecoder =
         (field "sender" string)
         (field "recipient" string)
         (field "read" bool)
+
+
+{-| Encodes a Message
+-}
+encodeMessage : Message -> Encode.Value
+encodeMessage msg =
+    Encode.object
+        [ ( "id", Encode.string msg.id )
+        , ( "body", Encode.string msg.body )
+        , ( "body", Encode.string msg.body )
+        , ( "datetime", Encode.string <| Date.toIsoString msg.datetime )
+        , ( "from", Encode.string msg.sender )
+        , ( "to", Encode.string msg.recipient )
+        ]
