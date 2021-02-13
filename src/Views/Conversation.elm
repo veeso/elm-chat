@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Views.Conversation exposing (..)
+module Views.Conversation exposing (viewConversation)
 
 import Css exposing (..)
 import Data.Message exposing (Conversation, Message)
