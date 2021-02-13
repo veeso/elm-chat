@@ -9,9 +9,9 @@ module Data.User exposing (User, usersDecoder)
 
 -- Dependencies
 
-import Date
-import Json.Decode exposing (Decoder, andThen, bool, field, list, map4, maybe, string)
-import Utils exposing (dateDecoder)
+import Iso8601
+import Json.Decode exposing (Decoder, bool, field, list, map4, maybe, string)
+import Time exposing (Posix)
 
 
 {-| User describes a user registered in the chat application,
@@ -26,7 +26,7 @@ obviously without its confidentials parameters.
 type alias User =
     { username : String
     , avatar : Maybe String
-    , lastActivity : Date.Date
+    , lastActivity : Posix
     , online : Bool
     }
 
@@ -49,5 +49,5 @@ userDecoder =
     map4 User
         (field "username" string)
         (maybe (field "avatar" string))
-        (field "lastActivity" string |> andThen dateDecoder)
+        (field "lastActivity" Iso8601.decoder)
         (field "online" bool)
