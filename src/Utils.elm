@@ -5,19 +5,6 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Utils exposing (dateDecoder)
+module Utils exposing (..)
 
-import Date
-import Json.Decode exposing (Decoder, fail, succeed)
-
-
-{-| Custom decoder for Date.Date
--}
-dateDecoder : String -> Decoder Date.Date
-dateDecoder isodate =
-    case Date.fromIsoString isodate of
-        Ok dt ->
-            succeed dt
-
-        Err err ->
-            fail ("Could not parse 'lastActivity': " ++ err)
+-- The end

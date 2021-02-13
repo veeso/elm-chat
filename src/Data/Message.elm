@@ -9,10 +9,10 @@ module Data.Message exposing (Conversation, Message, conversationDecoder, encode
 
 -- Dependencies
 
-import Date
-import Json.Decode exposing (Decoder, andThen, bool, field, list, map6, string)
+import Iso8601
+import Json.Decode exposing (Decoder, bool, field, list, map6, string)
 import Json.Encode as Encode
-import Utils exposing (dateDecoder)
+import Time exposing (Posix)
 
 
 {-| Conversation is an alias for a list of messages
@@ -24,7 +24,7 @@ type alias Conversation =
 {-| Message describes a chat message entity
 
     - id : String: uuidv4, message identifier
-    - date : Date.Date: message envoy datetime
+    - date : Posix: message envoy datetime
     - body : String: Message body
     - sender : String: message sender
     - recipient : String: message recipient
@@ -33,7 +33,7 @@ type alias Conversation =
 -}
 type alias Message =
     { id : String
-    , datetime : Date.Date
+    , datetime : Posix
     , body : String
     , sender : String
     , recipient : String
@@ -58,7 +58,7 @@ messageDecoder : Decoder Message
 messageDecoder =
     map6 Message
         (field "id" string)
-        (field "datetime" string |> andThen dateDecoder)
+        (field "datetime" Iso8601.decoder)
         (field "body" string)
         (field "sender" string)
         (field "recipient" string)
@@ -73,7 +73,7 @@ encodeMessage msg =
         [ ( "id", Encode.string msg.id )
         , ( "body", Encode.string msg.body )
         , ( "body", Encode.string msg.body )
-        , ( "datetime", Encode.string <| Date.toIsoString msg.datetime )
+        , ( "datetime", Iso8601.encode msg.datetime )
         , ( "from", Encode.string msg.sender )
         , ( "to", Encode.string msg.recipient )
         ]
