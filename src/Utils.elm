@@ -7,4 +7,22 @@
 
 module Utils exposing (..)
 
--- The end
+import DateFormat
+import Time exposing (Posix, Zone)
+
+
+{-| Format a date with syntax => 2021/02/13 15:49
+-}
+prettyDateFormatter : Zone -> Posix -> String
+prettyDateFormatter =
+    DateFormat.format
+        [ DateFormat.yearNumberLastTwo
+        , DateFormat.text "/"
+        , DateFormat.monthFixed
+        , DateFormat.text "/"
+        , DateFormat.dayOfMonthFixed
+        , DateFormat.text " "
+        , DateFormat.hourFixed
+        , DateFormat.text ":"
+        , DateFormat.minuteFixed
+        ]
