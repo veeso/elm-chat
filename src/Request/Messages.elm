@@ -5,17 +5,16 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Request.Messages exposing (getConversation, markAsRead)
+module Request.Messages exposing (getConversation, markAsRead, sendMessage)
 
-import Data.Message exposing (Conversation, conversationDecoder)
-import File exposing (File)
-import Http exposing (emptyBody, filePart, multipartBody, stringPart)
-import Json.Decode exposing (Decoder, andThen, field, string)
+import Data.Message exposing (Conversation, Message, conversationDecoder, messageDecoder)
+import Http
 import Json.Encode as Encode
 
 
 type Msg
     = GotConversation (Result Http.Error Conversation)
+    | MessageSent (Result Http.Error Message)
     | MarkedAsRead (Result Http.Error ())
 
 
@@ -30,6 +29,26 @@ getConversation username =
     Http.get
         { url = ":3000/api/chat/history/" ++ username
         , expect = Http.expectJson GotConversation conversationDecoder
+        }
+
+
+{-| Send message to a certain user; returns the Message entity processed by the server
+
+    sendMessage "omar" "Hello Omar! How are you?"
+
+-}
+sendMessage : String -> String -> Cmd Msg
+sendMessage recipient text =
+    let
+        body =
+            Encode.object
+                [ ( "body", Encode.string text )
+                ]
+    in
+    Http.post
+        { url = ":3000/api/chat/send/" ++ recipient
+        , body = Http.jsonBody body
+        , expect = Http.expectJson MessageSent messageDecoder
         }
 
 

@@ -5,11 +5,10 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.WsMessage exposing (WsMessage, wsMessageDecoder, encodeWsDeliveryMessage)
+module Data.WsMessage exposing (WsMessage, wsMessageDecoder)
 
 import Data.Message
-import Json.Decode exposing (Decoder, andThen, bool, fail, field, list, map, map2, string, succeed)
-import Json.Encode as Encode
+import Json.Decode exposing (Decoder, andThen, fail, field, map, map2, string, succeed)
 
 
 {-| WsMessage variant
@@ -89,17 +88,3 @@ wsMessageErrorDecoder : Decoder WsMessage
 wsMessageErrorDecoder =
     map Error
         (field "error" string)
-
-
-
--- Serializer
-
-
-{-| Encodes a "Delivery" websocket message (JSON)
--}
-encodeWsDeliveryMessage : Data.Message.Message -> Encode.Value
-encodeWsDeliveryMessage msg =
-    Encode.object
-        [ ( "type", Encode.string "Delivery" )
-        , ( "message", Data.Message.encodeMessage msg )
-        ]

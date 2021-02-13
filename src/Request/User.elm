@@ -8,8 +8,7 @@
 module Request.User exposing (getUsers)
 
 import Data.User exposing (User, usersDecoder)
-import Http exposing (emptyBody, filePart, stringPart)
-import Json.Decode exposing (Decoder, andThen, field, string)
+import Http
 
 
 type Msg
