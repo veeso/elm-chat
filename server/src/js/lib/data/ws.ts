@@ -129,6 +129,19 @@ export function makeError(error: string): WsMessage {
 }
 
 /**
+ * @description make delivery message
+ * @param {Message} message
+ * @returns {WsMessage}
+ */
+
+export function makeDelivery(message: Message): WsMessage {
+  return {
+    type: WsMessageType.Delivery,
+    message,
+  };
+}
+
+/**
  * @description make received message
  * @param {Message} message
  * @returns {WsMessage}

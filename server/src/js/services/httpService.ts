@@ -22,6 +22,7 @@ import { sha512 } from "../lib/utils/utils";
 import Storage from "../lib/data/storage";
 import getLogger from "../lib/utils/logger";
 import MessageService from "./messageService";
+import Message from "../lib/data/message";
 
 export default class HttpService {
   private service: express.Express;
@@ -139,7 +140,7 @@ export default class HttpService {
         // Check if user exists
         const checkUser = this.store.searchUser(username);
         if (!checkUser) {
-          this.logger.debug(
+          this.logger.error(
             "Tried to authenticate with username",
             username,
             "but doesn't exist"
@@ -158,7 +159,7 @@ export default class HttpService {
             // Set user online
             this.store.connectUser(username);
           } else {
-            this.logger.debug(
+            this.logger.error(
               "Tried to authenticate with username",
               username,
               "but password is wrong"
@@ -171,6 +172,7 @@ export default class HttpService {
       }
     });
     this.service.all("/api/auth/signIn", (req, res) => {
+      this.logger.error("Bad method for 'signIn'; expected POST");
       res.sendStatus(405);
     });
 
@@ -216,30 +218,31 @@ export default class HttpService {
                 // Remove file if set
                 if (avatar) {
                   unlink(avatar, () => {
-                    this.logger.debug("Removed bad avatar at", avatar);
+                    this.logger.info("Removed bad avatar at", avatar);
                   });
                 }
                 this.logger.error("Could not register user:", err);
                 res.sendStatus(500);
               }
             } else {
-              this.logger.debug(
+              this.logger.error(
                 "Tried to register already existing user:",
                 username
               );
               res.sendStatus(409);
             }
           } else {
-            this.logger.debug("Received sign up without credentials");
+            this.logger.error("Received sign up without credentials");
             res.sendStatus(400);
           }
         } else {
-          this.logger.debug("Received sign up without 'data'");
+          this.logger.error("Received sign up without 'data'");
           res.sendStatus(400);
         }
       }
     );
     this.service.all("/api/auth/signUp", (req, res) => {
+      this.logger.error("Bad method for 'signUp'; expected POST");
       res.sendStatus(405);
     });
 
@@ -261,6 +264,7 @@ export default class HttpService {
       }
     });
     this.service.all("/api/auth/signOut", (req, res) => {
+      this.logger.error("Bad method for 'signOut'; expected POST");
       res.sendStatus(405);
     });
 
@@ -275,7 +279,7 @@ export default class HttpService {
           });
           res.send({});
         } catch (err) {
-          this.logger.debug("JWT has expired for user");
+          this.logger.error("JWT has expired for user");
           res.cookie("user", null);
           res.sendStatus(401);
         }
@@ -284,6 +288,7 @@ export default class HttpService {
       }
     });
     this.service.all("/api/auth/authed", (req, res) => {
+      this.logger.error("Bad method for 'authed'; expected GET");
       res.sendStatus(405);
     });
 
@@ -291,9 +296,14 @@ export default class HttpService {
 
     this.service.get("/api/chat/users", (req, res) => {
       const users = this.store.getUsers();
+      const username = req.user.username;
       // Serialize
       const payload: Array<any> = new Array();
       for (const user of users) {
+        // Don't return current user
+        if (user.username === username) {
+          continue;
+        }
         let avatar: string | null = user.avatar;
         if (avatar) {
           // Process avatar...
@@ -311,6 +321,7 @@ export default class HttpService {
       res.send(payload);
     });
     this.service.all("/api/chat/users", (req, res) => {
+      this.logger.error("Bad method for 'users'; expected GET");
       res.sendStatus(405);
     });
 
@@ -335,8 +346,63 @@ export default class HttpService {
           res.sendStatus(404);
         }
       } else {
+        this.logger.error("Missing 'username' in history request");
         res.sendStatus(400);
       }
+    });
+    this.service.all("/api/chat/history", (req, res) => {
+      this.logger.error("Bad method for 'signIn'; expected POST");
+      res.sendStatus(405);
+    });
+
+    // Send message
+
+    this.service.post("/api/chat/send/:recipient", (req, res) => {
+      const sender = req.user.username;
+      const recipient = req.params.recipient;
+      if (recipient) {
+        // If recipient and sender are equal, return bad request
+        if (recipient === sender) {
+          this.logger.error(
+            sender,
+            "tried to send a message to himself! What a nice person :D"
+          );
+          res.sendStatus(400);
+        } else {
+          // Check body
+          const text = req.body["body"];
+          if (text) {
+            // Push message
+            try {
+              const message: Message = this.store.pushMessage(
+                sender,
+                recipient,
+                text
+              );
+              // Make message
+              this.logger.info(
+                sender,
+                "sent a new message to",
+                recipient + ": '" + text + "'"
+              );
+              res.send(message);
+            } catch (err) {
+              this.logger.error("Could not send message:", err);
+              res.sendStatus(404);
+            }
+          } else {
+            this.logger.error("Missing 'body' in chat send request");
+            res.sendStatus(400);
+          }
+        }
+      } else {
+        this.logger.error("Missing 'recipient' in chat send request");
+        res.sendStatus(400);
+      }
+    });
+    this.service.all("/api/chat/send", (req, res) => {
+      this.logger.error("Bad method for 'send'; expected POST");
+      res.sendStatus(405);
     });
 
     // Set read
@@ -357,6 +423,7 @@ export default class HttpService {
       }
     });
     this.service.all("/api/chat/setread/", (req, res) => {
+      this.logger.error("Bad method for 'setRead'; expected POST");
       res.sendStatus(405);
     });
 

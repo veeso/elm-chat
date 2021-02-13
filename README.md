@@ -21,6 +21,7 @@ Developed by Christian Visintin
       - [Auth](#auth)
       - [Get users](#get-users)
       - [Get Conversation](#get-conversation)
+      - [Send message](#send-message)
       - [Mark message as read](#mark-message-as-read)
     - [WS Protocol - Message Service](#ws-protocol---message-service)
       - [Delivery message](#delivery-message)
@@ -142,6 +143,7 @@ The API server uses JWT to store authentication data. The JWT must be stored as 
 For all the requests these codes might be returned:
 
 - **400**: for bad parameters in the request
+- **401**: if not signed in
 - **403**: if not allowed to perform the request
 - **404**: if not found
 - **405**: if method is not allowed
@@ -207,7 +209,7 @@ In order to sign out, you must send a **POST** to `/api/auth/signOut` with the f
 
 this request might return the following error codes:
 
-**403**: if the user is not signed in
+**401**: if the user is not signed in
 
 #### Auth
 
@@ -234,9 +236,12 @@ the following response is returned:
 ]
 ```
 
+The session user **WON'T** be returned!
+
 this request might return the following error codes:
 
-- **403**: if the user is not signed in
+- **400**: if you try to send a message to yourself :)
+- **401**: if the user is not signed in
 
 #### Get Conversation
 
@@ -260,7 +265,38 @@ the following response is returned:
 
 this request might return the following error codes:
 
-- **403**: if the user is not signed in
+- **401**: if the user is not signed in
+- **404**: if the provided username doesn't exist
+
+#### Send message
+
+In order to send a message to another user, you must sned a **POST** to `/api/chat/send/{USERNAME}`
+
+with the following paayload:
+
+```json
+{
+  "body": "Hey there! How's going on?"
+}
+```
+
+the following response is returned:
+
+```json
+{
+  "id": "7cde59ce-0fe0-485e-abf8-237637cc905f",
+  "datetime": "2021-02-06T12:45:00Z",
+  "body": "Hey there! How's going on?",
+  "from": "foo",
+  "to": "bar",
+  "read": false,
+  "recv": false
+}
+```
+
+this request might return the following error codes:
+
+- **401**: if the user is not signed in
 - **404**: if the provided username doesn't exist
 
 #### Mark message as read
@@ -269,7 +305,7 @@ In order to mark a message as read, you must send a **POST** to `/api/chat/setre
 
 this request might return the following error codes:
 
-- **403**: if the user is not signed in
+- **401**: if the user is not signed in
 - **404**: if the provided message doesn't exist
 
 ### WS Protocol - Message Service
@@ -279,7 +315,7 @@ The Ws protocol describes how the message must be built in order to communicate 
 The syntax of the messages is JSON, and each one of them is identified by an always-set key `type`, which defines the type of message.
 There are 5 types of messages defined in the protocol:
 
-- `Delivery`: sent by a client when a message is sent; the server then dispatches the message to the recipient. Requires `message`.
+- `Delivery`: Sent by the server to the recipient of a message when a user sends one. Requires `message`.
 - `Received`: sent by the server to the sender when the message has been received
 - `Read`: sent by the server to the sender when the message has been read
 - `Error`: sent by the server to the client, when an error occurs

@@ -12,17 +12,15 @@ import { Logger } from "log4js";
 import getLogger from "../lib/utils/logger";
 import {
   parseMessage,
-  makeError,
+  makeDelivery,
   serialize,
   WsMessage,
-  sessionExpired,
   WsMessageType,
   makeRead,
   makeReceived,
 } from "../lib/data/ws";
 import Message from "../lib/data/message";
 import Storage from "../lib/data/storage";
-import User from "../lib/data/user";
 
 export default class MessageService {
   private wsServer: WebSocket.Server;
@@ -45,6 +43,9 @@ export default class MessageService {
     });
     this.store.subscribeReceived((msg: Message) => {
       this.dispatchReceived(msg);
+    });
+    this.store.subscribeOnMessage((msg: Message) => {
+      this.dispatchDelivery(msg);
     });
     // Make logger
     this.logger = getLogger("messageService");
@@ -138,11 +139,6 @@ export default class MessageService {
     }
     // Switch over message type
     switch (wsMessage.type) {
-      case WsMessageType.Delivery:
-        if (wsMessage.message) {
-          this.dispatchDelivery(socket, wsMessage.message);
-        }
-        break;
       case WsMessageType.Error:
         this.logger.warn("Client", client, "reports error:", wsMessage.error);
         break;
@@ -158,74 +154,31 @@ export default class MessageService {
    * @param {WsMessage} message
    */
 
-  private dispatchDelivery(socket: WebSocket, message: Message) {
+  private dispatchDelivery(message: Message) {
     // Error callback
     const errCb = (err: Error | undefined) => {
       this.logger.error("Could not send message:", err);
     };
-    // Sender must exist
-    const sender: User | null = this.store.searchUser(message.from);
-    if (!sender) {
-      this.logger.error(
-        "Sender",
-        message.from,
-        "doesn't exist!? Has its session expired?"
+    // Check if `to`'s socket exists
+    const socket = this.channels.get(message.to);
+    if (!socket) {
+      this.logger.debug(
+        "No socket is available for",
+        message.to,
+        ", is it offline?"
       );
-      // Return session expired
-      const response = serialize(sessionExpired());
-      socket.send(response, errCb);
       return;
     }
-    // Check if user exists
-    const recipient = this.store.searchUser(message.to);
-    if (!recipient) {
-      this.logger.error("User", message.to, "doesn't exist!");
-      const response = serialize(
-        makeError("User '" + message.to + "' doesn't exist!")
-      );
-      socket.send(response, errCb);
-      return;
-    }
-    // Recipient must be different from sender
-    if (recipient === sender) {
-      this.logger.error("Message has same recipient and sender!");
-      // Report error
-      const response = serialize(
-        makeError("Message has same recipient and sender!")
-      );
-      socket.send(response, errCb);
-      return;
-    }
-    // Save message to store
-    try {
-      this.store.pushMessage(message);
-      this.logger.debug("Saved message to store!");
-    } catch (err) {
-      this.logger.error("Could not save message to store:", err);
-      // Report error
-      const response = serialize(
-        makeError("Could not save message to store:" + err)
-      );
-      socket.send(response, errCb);
-      return;
-    }
-    // Dispatch to recipient
-    const recipientSocket = this.channels.get(message.to);
-    if (recipientSocket) {
-      // Send message to recipient
-      const wsMessage: WsMessage = {
-        type: WsMessageType.Delivery,
-        message,
-      };
-      this.logger.debug("Sending message to", message.to);
-      recipientSocket.send(serialize(wsMessage), errCb);
-      this.logger.info("Message dispatched to", message.to);
-    } else {
-      // This log entry should be removed in a production environment
-      this.logger.warn(
-        "Recipient socket doesn't exist (but user does), probably he's offline"
-      );
-    }
+    // Serialize read
+    const wsMessage: WsMessage = makeDelivery(message);
+    this.logger.debug(
+      "Delivering message from",
+      message.from,
+      "to",
+      message.to
+    );
+    socket.send(serialize(wsMessage), errCb);
+    this.logger.info("Delivery dispatched to", message.to);
   }
 
   /**

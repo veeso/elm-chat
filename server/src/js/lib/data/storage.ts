@@ -6,10 +6,12 @@
 
 import Message from "./message";
 import User from "./user";
+import { v4 as uuid } from "uuid";
 
 // Subscription callbacks
 export declare type OnMessageReceived = (message: Message) => void;
 export declare type OnMessageRead = (message: Message) => void;
+export declare type OnMessage = (message: Message) => void;
 
 export default class Storage {
   private users: Array<User>;
@@ -17,6 +19,7 @@ export default class Storage {
   // Subscriptions
   private recvSubscriptions: Array<OnMessageReceived>;
   private readSubscriptions: Array<OnMessageRead>;
+  private onMessageSubscriptions: Array<OnMessage>;
 
   constructor() {
     // data structs
@@ -25,6 +28,7 @@ export default class Storage {
     // subscriptions
     this.recvSubscriptions = new Array();
     this.readSubscriptions = new Array();
+    this.onMessageSubscriptions = new Array();
   }
 
   /**
@@ -43,6 +47,15 @@ export default class Storage {
 
   public subscribeRead(cb: OnMessageRead) {
     this.readSubscriptions.push(cb);
+  }
+
+  /**
+   * @description subscribe to onMessage event
+   * @param {OnMessage} cb
+   */
+
+  public subscribeOnMessage(cb: OnMessage) {
+    this.onMessageSubscriptions.push(cb);
   }
 
   // User related methods
@@ -130,25 +143,40 @@ export default class Storage {
 
   /**
    * @description create a new message
-   * @param {string} id
+   * @param {string} sender
+   * @param {string} recipient
    * @param {string} body
-   * @param {string} from
-   * @param {string} to
-   * @param {Date} datetime
+   * @throws {Error} if user doesn't exist
+   * @returns {Message}
    */
 
-  public pushMessage(message: Message) {
-    const sender: User | null = this.searchUser(message.from);
-    const recipient: User | null = this.searchUser(message.to);
-    if (!sender) {
-      throw new Error("User '" + message.from + "' doesn't exist");
+  public pushMessage(sender: string, recipient: string, body: string): Message {
+    const from: User | null = this.searchUser(sender);
+    const to: User | null = this.searchUser(recipient);
+    if (!from) {
+      throw new Error("User '" + sender + "' doesn't exist");
     }
-    if (!recipient) {
-      throw new Error("User '" + message.to + "' doesn't exist");
+    if (!to) {
+      throw new Error("User '" + recipient + "' doesn't exist");
     }
+    // Make message
+    const message: Message = {
+      id: uuid(),
+      from: sender,
+      to: recipient,
+      body,
+      datetime: new Date(),
+      recv: false,
+      read: false,
+    };
+    // Push message
     this.messages.push(message);
     // Update last activity
-    sender.lastActivity = new Date();
+    from.lastActivity = new Date();
+    // Notify
+    this.notifyOnMessageSubscriber(message);
+    // Return message
+    return message;
   }
 
   /**
@@ -177,9 +205,9 @@ export default class Storage {
         message.to === user2.username ||
         (message.from === user2.username && message.to === user1.username)
       ) {
-        // Also mark the message as received
+        // Also mark the message as received ONLY if user who requested the message is the RECIPIENT!!!
         const recv: boolean = message.recv;
-        if (!recv) {
+        if (!recv && username === message.to) {
           message.recv = true;
           // Notify
           this.notifyRecvSubscriber(message);
@@ -250,6 +278,16 @@ export default class Storage {
    */
   private notifyRecvSubscriber(msg: Message) {
     for (const cb of this.recvSubscriptions) {
+      cb(msg);
+    }
+  }
+
+  /**
+   * @description notify all OnMessage event subscribers
+   * @param {Message} msg
+   */
+  private notifyOnMessageSubscriber(msg: Message) {
+    for (const cb of this.onMessageSubscriptions) {
       cb(msg);
     }
   }
