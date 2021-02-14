@@ -5,13 +5,14 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Views.UserList exposing (Msg)
+module Views.UserList exposing (Msg, viewAvatarColumn, viewLastActivity, viewUserList, viewUsername)
 
 import Css exposing (..)
 import Data.User exposing (User)
 import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (alt, class, css, src)
+import Html.Styled.Events exposing (onClick)
 import Time exposing (Posix)
 import Utils exposing (prettyDateFormatter)
 
@@ -22,26 +23,68 @@ type Msg
     = UserSelected User
 
 
-{-| View user list
+{-| View user list; selected user is rendered differently
 
-    viewUserList [user1, user2, ..., usern]
+    viewUserList [user1, user2, ..., usern] user2
 
 -}
-viewUserList : List User -> Html msg
-viewUserList users =
-    ul [ class "list-group" ] (List.map viewUserRow users)
+viewUserList : List User -> String -> Html Msg
+viewUserList users selected =
+    ul [ class "list-group" ]
+        (makeUserRows users selected)
+
+
+{-| Make user rows recursively
+-}
+makeUserRows : List User -> String -> List (Html Msg)
+makeUserRows users selected =
+    case users of
+        [] ->
+            []
+
+        first :: more ->
+            (if first.username == selected then
+                viewSelectedUserRow first
+
+             else
+                viewUserRow first
+            )
+                :: makeUserRows more selected
 
 
 {-| View user row
 -}
-viewUserRow : User -> Html msg
+viewUserRow : User -> Html Msg
 viewUserRow user =
     li
         [ class "list-group-item"
         , css
             [ hover
                 [ backgroundColor (hex "#eeeeee")
+                , cursor pointer
                 ]
+            , active
+                [ backgroundColor (hex "#ffffff")
+                ]
+            ]
+        ]
+        [ div [ class "row align-items-center", onClick (UserSelected user) ]
+            [ viewAvatarColumn user.avatar user.online
+            , viewUsername user.username
+            , viewLastActivity user.lastActivity
+            ]
+        ]
+
+
+{-| View user row for selected user
+-}
+viewSelectedUserRow : User -> Html Msg
+viewSelectedUserRow user =
+    li
+        [ class "list-group-item"
+        , css
+            [ backgroundColor (hex "#eeeeee")
+            , cursor pointer
             ]
         ]
         [ div [ class "row align-items-center" ]
@@ -54,7 +97,7 @@ viewUserRow user =
 
 {-| View username column
 -}
-viewUsername : String -> Html msg
+viewUsername : String -> Html Msg
 viewUsername username =
     div [ class "col-4" ]
         [ h6 [] [ text username ]
@@ -63,7 +106,7 @@ viewUsername username =
 
 {-| View user last activity
 -}
-viewLastActivity : Posix -> Html msg
+viewLastActivity : Posix -> Html Msg
 viewLastActivity lastActivity =
     div
         [ class "col align-self-end justify-content-end"
@@ -75,7 +118,7 @@ viewLastActivity lastActivity =
 
 {-| View avatar column
 -}
-viewAvatarColumn : Maybe String -> Bool -> Html msg
+viewAvatarColumn : Maybe String -> Bool -> Html Msg
 viewAvatarColumn avatar online =
     div [ class "col-1" ]
         (viewAvatar avatar
@@ -90,13 +133,14 @@ viewAvatarColumn avatar online =
 
 {-| View avatar. If Nothing, use fallback avatar
 -}
-viewAvatar : Maybe String -> Html msg
+viewAvatar : Maybe String -> Html Msg
 viewAvatar avatar =
     img
         [ class "rounded-circle"
         , css
             [ height (px 48)
             ]
+        , alt "User avatar"
         , src
             (case avatar of
                 Just url ->
@@ -111,7 +155,7 @@ viewAvatar avatar =
 
 {-| Draw "online green dot" on the user avatar
 -}
-viewOnlineDot : Html msg
+viewOnlineDot : Html Msg
 viewOnlineDot =
     div
         [ css
