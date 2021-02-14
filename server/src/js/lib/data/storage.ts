@@ -72,6 +72,8 @@ export default class Storage {
       // Check if online or not
       users = users.filter((u) => u.online === online);
     }
+    // Sort by username
+    users.sort((a, b) => (a.username.localeCompare(b.username)));
     return users;
   }
 
