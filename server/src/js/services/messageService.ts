@@ -18,9 +18,11 @@ import {
   WsMessageType,
   makeRead,
   makeReceived,
+  makeUserJoined,
 } from "../lib/data/ws";
 import Message from "../lib/data/message";
 import Storage from "../lib/data/storage";
+import User from "../lib/data/user";
 
 export default class MessageService {
   private wsServer: WebSocket.Server;
@@ -46,6 +48,12 @@ export default class MessageService {
     });
     this.store.subscribeOnMessage((msg: Message) => {
       this.dispatchDelivery(msg);
+    });
+    this.store.subscribeOnUserJoined((user: User) => {
+      this.dispatchUserJoined(user);
+    });
+    this.store.subscribeOnUserOnline((user: User) => {
+      this.dispatchUserOnline(user);
     });
     // Make logger
     this.logger = getLogger("messageService");
@@ -245,5 +253,73 @@ export default class MessageService {
     );
     socket.send(serialize(wsMessage), errCb);
     this.logger.info("Received notification dispatched to", message.to);
+  }
+
+  /**
+   * @description notify to all clients (except user's one) that a new user has joined the chat
+   * @param {User} user
+   */
+
+  private dispatchUserJoined(user: User) {
+    this.logger.info(
+      "Notifying clients that user",
+      user.username,
+      "has joined the chat"
+    );
+    const errCb = (err: Error | undefined) => {
+      this.logger.error("Could not send message:", err);
+    };
+    // Serialize message
+    const outMessage: WsMessage = makeUserJoined(user);
+    // Iterate over channels
+    Array.from(this.channels.keys()).map((username) => {
+      // If username is different from user.username, send the message
+      const socket = this.channels.get(username);
+      if (username !== user.username && socket) {
+        this.logger.debug(
+          "Notifying to",
+          username,
+          "that",
+          user.username,
+          "has joined the chat!"
+        );
+        socket.send(serialize(outMessage), errCb);
+      }
+    });
+  }
+
+  /**
+   * @description notify to all clients (except user's one) that a certain user is now online/offline
+   * @param {User} user
+   */
+
+  private dispatchUserOnline(user: User) {
+    this.logger.info(
+      "Notifying clients that user",
+      user.username,
+      "is now",
+      user.online ? "online" : "offline"
+    );
+    const errCb = (err: Error | undefined) => {
+      this.logger.error("Could not send message:", err);
+    };
+    // Serialize message
+    const outMessage: WsMessage = makeUserJoined(user);
+    // Iterate over channels
+    Array.from(this.channels.keys()).map((username) => {
+      // If username is different from user.username, send the message
+      const socket = this.channels.get(username);
+      if (username !== user.username && socket) {
+        this.logger.debug(
+          "Notifying to",
+          username,
+          "that",
+          user.username,
+          "now it's",
+          user.online ? "online" : "offline"
+        );
+        socket.send(serialize(outMessage), errCb);
+      }
+    });
   }
 }

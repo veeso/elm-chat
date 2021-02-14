@@ -5,6 +5,7 @@
  */
 
 import Message from "./message";
+import User from "./user";
 
 export enum WsMessageType {
   Delivery, // A message is being delivered by a client to another
@@ -12,6 +13,15 @@ export enum WsMessageType {
   Read, // Returned by the second client, when a message has been read
   Error, // There was an error in delivering messages
   SessionExpired, // Report to user that its session has expired
+  UserJoined, // A user has just signed up
+  UserOnline, // A user online state has changed
+}
+
+interface WsMessageUser {
+  username: string;
+  avatar: string | null;
+  lastActivity: Date;
+  online: boolean;
 }
 
 export interface WsMessage {
@@ -20,6 +30,10 @@ export interface WsMessage {
   ref?: string | undefined; // [Received, Read]
   who?: string | undefined; // [Received, Read]
   error?: string | undefined; // [Error]
+  user?: WsMessageUser | undefined; // [UserJoined]
+  username?: string | undefined; // [UserOnline]
+  online?: boolean | undefined; // [UserOnline]
+  lastActivity?: Date | undefined; // [UserOnline]
 }
 
 /**
@@ -47,6 +61,12 @@ export function parseMessage(data: any): WsMessage {
         break;
       case "SessionExpired":
         type = WsMessageType.SessionExpired;
+        break;
+      case "UserJoined":
+        type = WsMessageType.UserJoined;
+        break;
+      case "UserOnline":
+        type = WsMessageType.UserOnline;
         break;
       default:
         throw new Error("Bad message type");
@@ -109,6 +129,43 @@ export function parseMessage(data: any): WsMessage {
     return {
       type,
     };
+  } else if (data["user"] && type === WsMessageType.UserJoined) {
+    // Parse message
+    const dataMsg = data["user"];
+    if (!dataMsg["username"]) {
+      throw new Error("Missing 'username' in 'user'");
+    }
+    if (!dataMsg["lastActivity"]) {
+      throw new Error("Missing 'lastActivity' in 'user'");
+    }
+    if (!dataMsg["online"]) {
+      throw new Error("Missing 'online' in 'user'");
+    }
+    const username = dataMsg["username"];
+    const avatar = dataMsg["avatar"] ? dataMsg["avatar"] : null;
+    const lastActivity = new Date(dataMsg["lastActivity"]);
+    const online = dataMsg["online"];
+    return {
+      type,
+      user: {
+        username,
+        avatar,
+        lastActivity,
+        online,
+      },
+    };
+  } else if (
+    data["username"] &&
+    data["online"] &&
+    data["lastActivity"] &&
+    (type === WsMessageType.Read || type === WsMessageType.Received)
+  ) {
+    return {
+      type,
+      username: data["username"],
+      online: data["online"],
+      lastActivity: new Date(data["lastActivity"]),
+    };
   } else {
     throw new Error("Syntax error in message");
   }
@@ -170,6 +227,39 @@ export function makeRead(message: Message): WsMessage {
 }
 
 /**
+ * @description make user joined message
+ * @param {Message} message
+ * @returns {WsMessage}
+ */
+
+export function makeUserJoined(user: User): WsMessage {
+  return {
+    type: WsMessageType.UserJoined,
+    user: {
+      username: user.username,
+      avatar: user.avatar,
+      lastActivity: user.lastActivity,
+      online: user.online,
+    },
+  };
+}
+
+/**
+ * @description make user joined message
+ * @param {Message} message
+ * @returns {WsMessage}
+ */
+
+export function makeUserOnline(user: User): WsMessage {
+  return {
+    type: WsMessageType.UserOnline,
+    username: user.username,
+    lastActivity: user.lastActivity,
+    online: user.online,
+  };
+}
+
+/**
  * @description make a session expired message
  */
 
@@ -202,6 +292,14 @@ export function serialize(message: WsMessage): any {
     case WsMessageType.Received:
       type = "Received";
       break;
+    case WsMessageType.UserJoined:
+      type = "UserJoined";
+      break;
+    case WsMessageType.UserOnline:
+      type = "UserOnline";
+      break;
+    default:
+      throw new Error("Unknown message type: " + message.type);
   }
   return {
     type: type,
@@ -209,5 +307,9 @@ export function serialize(message: WsMessage): any {
     ref: message.ref,
     message: message.message,
     error: message.error,
+    user: message.user,
+    username: message.username,
+    lastActivity: message.lastActivity,
+    online: message.online,
   };
 }

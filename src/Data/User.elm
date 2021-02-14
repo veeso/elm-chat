@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.User exposing (User, usersDecoder)
+module Data.User exposing (User, addUser, sortUsers, updateUserStatus, userDecoder, usersDecoder)
 
 -- Dependencies
 
@@ -29,6 +29,51 @@ type alias User =
     , lastActivity : Posix
     , online : Bool
     }
+
+
+
+-- Manipulation
+
+
+{-| Add a user to users list and then sort them by username
+
+    addUser [b, c] a  -> [a, b, c]
+
+-}
+addUser : List User -> User -> List User
+addUser users user =
+    sortUsers (user :: users)
+
+
+{-| Sort users by username
+
+    sortUsers [c, a, b] -> [a, b, c]
+
+-}
+sortUsers : List User -> List User
+sortUsers users =
+    List.sortBy .username users
+
+
+{-| Update the status the provided username
+
+    updateUserStatus [...] "omar" False Posix
+
+-}
+updateUserStatus : List User -> String -> Bool -> Posix -> List User
+updateUserStatus users username online lastActivity =
+    case users of
+        [] ->
+            []
+
+        first :: more ->
+            (if first.username == username then
+                { first | online = online, lastActivity = lastActivity }
+
+             else
+                first
+            )
+                :: updateUserStatus more username online lastActivity
 
 
 

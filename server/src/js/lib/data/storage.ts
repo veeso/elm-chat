@@ -12,6 +12,8 @@ import { v4 as uuid } from "uuid";
 export declare type OnMessageReceived = (message: Message) => void;
 export declare type OnMessageRead = (message: Message) => void;
 export declare type OnMessage = (message: Message) => void;
+export declare type OnUserJoined = (user: User) => void;
+export declare type OnUserOnline = (user: User) => void;
 
 export default class Storage {
   private users: Array<User>;
@@ -20,6 +22,8 @@ export default class Storage {
   private recvSubscriptions: Array<OnMessageReceived>;
   private readSubscriptions: Array<OnMessageRead>;
   private onMessageSubscriptions: Array<OnMessage>;
+  private onUserJoinedSubscriptions: Array<OnUserJoined>;
+  private onUserOnlineSubscriptions: Array<OnUserOnline>;
 
   constructor() {
     // data structs
@@ -29,6 +33,8 @@ export default class Storage {
     this.recvSubscriptions = new Array();
     this.readSubscriptions = new Array();
     this.onMessageSubscriptions = new Array();
+    this.onUserJoinedSubscriptions = new Array();
+    this.onUserOnlineSubscriptions = new Array();
   }
 
   /**
@@ -56,6 +62,24 @@ export default class Storage {
 
   public subscribeOnMessage(cb: OnMessage) {
     this.onMessageSubscriptions.push(cb);
+  }
+
+  /**
+   * @description subscribe to onUserJoined event
+   * @param {OnUserJoined} cb
+   */
+
+  public subscribeOnUserJoined(cb: OnUserJoined) {
+    this.onUserJoinedSubscriptions.push(cb);
+  }
+
+  /**
+   * @description subscribe to OnUserOnline event
+   * @param {OnUserOnline} cb
+   */
+
+  public subscribeOnUserOnline(cb: OnUserOnline) {
+    this.onUserOnlineSubscriptions.push(cb);
   }
 
   // User related methods
@@ -102,13 +126,16 @@ export default class Storage {
     if (this.searchUser(username) !== null) {
       throw new Error("User already exists");
     }
-    this.users.push({
+    const user: User = {
       username: username,
       avatar: avatar,
       lastActivity: new Date(),
       online: true,
       secret: secret,
-    });
+    };
+    this.users.push(user);
+    // Notify subscribers
+    this.notifyOnUserJoined(user);
   }
 
   /**
@@ -124,6 +151,8 @@ export default class Storage {
     user.online = true;
     // Update last activity
     user.lastActivity = new Date();
+    // Notify subscribers
+    this.notifyOnUserOnline(user);
   }
 
   /**
@@ -139,6 +168,8 @@ export default class Storage {
     user.online = false;
     // Update last activity
     user.lastActivity = new Date();
+    // Notify subscribers
+    this.notifyOnUserOnline(user);
   }
 
   // Message API
@@ -291,6 +322,26 @@ export default class Storage {
   private notifyOnMessageSubscriber(msg: Message) {
     for (const cb of this.onMessageSubscriptions) {
       cb(msg);
+    }
+  }
+
+  /**
+   * @description notify all onUserJoined event subscribers
+   * @param {Message} msg
+   */
+  private notifyOnUserJoined(user: User) {
+    for (const cb of this.onUserJoinedSubscriptions) {
+      cb(user);
+    }
+  }
+
+  /**
+   * @description notify all OnUserOnline event subscribers
+   * @param {Message} msg
+   */
+  private notifyOnUserOnline(user: User) {
+    for (const cb of this.onUserOnlineSubscriptions) {
+      cb(user);
     }
   }
 }

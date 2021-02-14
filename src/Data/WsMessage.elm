@@ -8,16 +8,34 @@
 module Data.WsMessage exposing (WsMessage, wsMessageDecoder)
 
 import Data.Message
-import Json.Decode exposing (Decoder, andThen, fail, field, map, map2, string, succeed)
+import Data.User exposing (User, userDecoder)
+import Iso8601
+import Json.Decode exposing (Decoder, andThen, bool, fail, field, map, map2, map3, string, succeed)
+import Time exposing (Posix)
+
+
+type alias UserRef =
+    { who : String
+    , ref : String
+    }
+
+
+type alias OnlineState =
+    { username : String
+    , online : Bool
+    , lastActivity : Posix
+    }
 
 
 {-| WsMessage variant
 -}
 type WsMessage
     = Delivery Data.Message.Message
-    | Received String String -- Who ref
-    | Read String String -- Who ref
+    | Received UserRef -- Who ref
+    | Read UserRef -- Who ref
     | Error String
+    | UserJoined User
+    | UserOnline OnlineState
     | SessionExpired
 
 
@@ -49,6 +67,12 @@ wsMessageTypeBasedDecoder wsType =
         "Error" ->
             wsMessageErrorDecoder
 
+        "UserJoined" ->
+            wsMessageUserJoinedDecoder
+
+        "UserOnline" ->
+            wsMessageUserOnlineDecoder
+
         "SessionExpired" ->
             succeed SessionExpired
 
@@ -68,18 +92,14 @@ wsMessageDeliveryDecoder =
 -}
 wsMessageReceivedDecoder : Decoder WsMessage
 wsMessageReceivedDecoder =
-    map2 Received
-        (field "who" string)
-        (field "ref" string)
+    map Received wsUserRefDecoder
 
 
 {-| Decodes a "Read" websocket message (JSON)
 -}
 wsMessageReadDecoder : Decoder WsMessage
 wsMessageReadDecoder =
-    map2 Read
-        (field "who" string)
-        (field "ref" string)
+    map Read wsUserRefDecoder
 
 
 {-| Decodes a "Error" websocket message (JSON)
@@ -88,3 +108,30 @@ wsMessageErrorDecoder : Decoder WsMessage
 wsMessageErrorDecoder =
     map Error
         (field "error" string)
+
+
+{-| Decodes a UserJoined websoscket message (JSON)
+-}
+wsMessageUserJoinedDecoder : Decoder WsMessage
+wsMessageUserJoinedDecoder =
+    map UserJoined
+        (field "user" userDecoder)
+
+
+wsMessageUserOnlineDecoder : Decoder WsMessage
+wsMessageUserOnlineDecoder =
+    map UserOnline
+        (map3 OnlineState
+            (field "username" string)
+            (field "online" bool)
+            (field "lastActivity" Iso8601.decoder)
+        )
+
+
+{-| Decodes a user ref
+-}
+wsUserRefDecoder : Decoder UserRef
+wsUserRefDecoder =
+    map2 UserRef
+        (field "who" string)
+        (field "ref" string)
