@@ -27,6 +27,8 @@ Developed by Christian Visintin
       - [Delivery message](#delivery-message)
       - [Received](#received)
       - [Read](#read)
+      - [User Joined](#user-joined)
+      - [User Online](#user-online)
       - [Error](#error)
       - [Session Expired](#session-expired)
 
@@ -379,6 +381,37 @@ The payload of the read message is:
 
 - who: the recipient of the original message
 - ref: the id of the message referred
+
+#### User Joined
+
+This message is sent by the server to **all the client connected** (exception is made for the client involved), when a new user **signs up**.
+The payload of this kind of message is:
+
+```json
+{
+  "type": "UserJoined",
+  "user": {
+    "username": "foo",
+    "avatar": "url",
+    "lastActivity": "2021-02-06T12:40:32Z",
+    "online": true
+  }
+}
+```
+
+#### User Online
+
+This message is sent by the server to **all the client connected** (exception is made for the client involved), when a user **signs in or out**.
+The payload of this kind of message is:
+
+```json
+{
+  "type": "UserOnline",
+  "username": "omar",
+  "online": false,
+  "lastActivity": "2021-02-06T12:40:32Z",
+}
+```
 
 #### Error
 
