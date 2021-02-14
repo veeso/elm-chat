@@ -216,7 +216,7 @@ export default class Storage {
       }
     }
     // Sort conversation by date
-    conversation.sort((a, b) => b.datetime.getTime() - a.datetime.getTime());
+    conversation.sort((a, b) => (a.datetime.getTime() - b.datetime.getTime()));
     return conversation;
   }
 
