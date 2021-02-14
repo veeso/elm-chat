@@ -5,12 +5,12 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.Message exposing (Conversation, Message, conversationDecoder, encodeMessage, messageDecoder)
+module Data.Message exposing (Conversation, Message, conversationDecoder, messageDecoder)
 
 -- Dependencies
 
 import Iso8601
-import Json.Decode exposing (Decoder, bool, field, list, map6, string)
+import Json.Decode exposing (Decoder, bool, field, list, map7, string)
 import Json.Encode as Encode
 import Time exposing (Posix)
 
@@ -28,6 +28,7 @@ type alias Conversation =
     - body : String: Message body
     - sender : String: message sender
     - recipient : String: message recipient
+    - recv : Bool
     - read : Bool: indicates whether the message has already been read (by the recipient)
 
 -}
@@ -37,6 +38,7 @@ type alias Message =
     , body : String
     , sender : String
     , recipient : String
+    , recv : Bool
     , read : Bool
     }
 
@@ -56,24 +58,11 @@ conversationDecoder =
 -}
 messageDecoder : Decoder Message
 messageDecoder =
-    map6 Message
+    map7 Message
         (field "id" string)
         (field "datetime" Iso8601.decoder)
         (field "body" string)
         (field "sender" string)
         (field "recipient" string)
+        (field "recv" bool)
         (field "read" bool)
-
-
-{-| Encodes a Message
--}
-encodeMessage : Message -> Encode.Value
-encodeMessage msg =
-    Encode.object
-        [ ( "id", Encode.string msg.id )
-        , ( "body", Encode.string msg.body )
-        , ( "body", Encode.string msg.body )
-        , ( "datetime", Iso8601.encode msg.datetime )
-        , ( "from", Encode.string msg.sender )
-        , ( "to", Encode.string msg.recipient )
-        ]

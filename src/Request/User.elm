@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Request.User exposing (getUsers)
+module Request.User exposing (Msg(..), getUsers)
 
 import Data.User exposing (User, usersDecoder)
 import Http

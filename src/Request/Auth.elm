@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Request.Auth exposing (Msg, authed, signin, signout, signup)
+module Request.Auth exposing (Msg(..), authed, signin, signout, signup)
 
 import Data.Jwt exposing (Jwt, jwtDecoder)
 import File exposing (File)

@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Views.UserList exposing (Msg, viewAvatarColumn, viewLastActivity, viewUserList, viewUsername)
+module Views.UserList exposing (Msg(..), viewAvatarColumn, viewLastActivity, viewUserList, viewUsername)
 
 import Css exposing (..)
 import Data.User exposing (User)

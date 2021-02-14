@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Request.Messages exposing (getConversation, markAsRead, sendMessage)
+module Request.Messages exposing (Msg(..), getConversation, markAsRead, sendMessage)
 
 import Data.Message exposing (Conversation, Message, conversationDecoder, messageDecoder)
 import Http

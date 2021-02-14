@@ -155,6 +155,7 @@ viewMessageOut message =
         [ viewMessageArrowOut
         , viewMessageContent message.body
         , viewMessageDate message.datetime
+        , viewMessageState message.recv message.read
         ]
 
 
@@ -190,14 +191,46 @@ viewMessageDate datetime =
     div
         [ css
             [ padding (Css.em 0.2)
-            , fontSize (Css.em 0.5)
+            , fontSize (Css.em 0.8)
             , float right
-            , color (hex "#aaaaaa")
+            , color (hex "#888888")
             ]
         ]
         [ span []
             [ text (prettyDateFormatter Time.utc datetime)
             ]
+        ]
+
+
+{-| View message state
+
+    viewMessageState message.recv message.read
+
+-}
+viewMessageState : Bool -> Bool -> Html msg
+viewMessageState received read =
+    div
+        [ css
+            [ padding (Css.em 0.2)
+            , fontSize (Css.em 0.8)
+            , float right
+            , color (hex "#888888")
+            ]
+        ]
+        [ i
+            [ class "bi"
+            , class
+                (if read then
+                    "bi-eye-fill"
+
+                 else if received then
+                    "by-inbox-fill"
+
+                 else
+                    "clock-fill"
+                )
+            ]
+            []
         ]
 
 
