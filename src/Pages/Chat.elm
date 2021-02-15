@@ -7,8 +7,12 @@
 
 module Pages.Chat exposing (..)
 
+import Css exposing (..)
 import Data.Message as Messages
 import Data.User exposing (User)
+import Html
+import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (class, css)
 import Http
 import Request.Messages as ApiMessages
 import Request.User as ApiUsers
@@ -53,7 +57,7 @@ init client =
 type Msg
     = InputChanged String
     | MessageSubmit
-    | UserListMsg UserList.Msg
+    | UserSelected User
     | GotUsers (Result Http.Error (List User))
     | GotConversation (Result Http.Error Messages.Conversation)
     | MessageSent (Result Http.Error Messages.Message)
@@ -62,26 +66,31 @@ type Msg
 
 
 
--- TODO: Send command on Message submit
+-- Update
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         InputChanged newMsg ->
+            -- Update message box
             ( { model | userInput = newMsg }, Cmd.none )
 
-        -- Update message box
         MessageSubmit ->
-            ( { model | userInput = "" }, Cmd.none )
+            -- Send message
+            ( { model | userInput = "" }
+            , case model.selectedUser of
+                Just selectedUser ->
+                    ApiMessages.sendMessage selectedUser.username model.userInput MessageSent
 
-        -- TODO: send message
-        UserListMsg umsg ->
-            case umsg of
-                UserList.UserSelected user ->
-                    ( { model | selectedUser = Just user, conversation = [] }, Cmd.none )
+                Nothing ->
+                    -- Can't send message if no user is selecetd NOTE: this should never happen
+                    Cmd.none
+            )
 
-        -- Set user and clear conversation
+        UserSelected user ->
+            ( { model | selectedUser = Just user, conversation = [] }, Cmd.none )
+
         GotUsers result ->
             case result of
                 Ok users ->
@@ -93,10 +102,10 @@ update msg model =
 
         GotConversation result ->
             case result of
+                -- Set conversation; notify to server messages have been read NOTE: we don't mark conversation as read HERE, because we do later for each message in `MarkedAsRead`
                 Ok conversation ->
-                    ( { model | conversation = conversation }, Cmd.none )
+                    ( { model | conversation = conversation }, Cmd.batch (notifyMessageRead conversation model.client.username) )
 
-                -- Set conversation; TODO: mark all messages as read
                 Err err ->
                     update (Error err) model
 
@@ -120,5 +129,51 @@ update msg model =
             ( { model | error = Just err }, Cmd.none )
 
 
+{-| Mark all messages sent to us as read and notify remote
+
+    notifyMessageRead [ a, b ] foo
+
+-}
+notifyMessageRead : Messages.Conversation -> String -> List (Cmd Msg)
+notifyMessageRead conversation username =
+    case conversation of
+        [] ->
+            []
+
+        first :: more ->
+            (if first.recipient == username then
+                ApiMessages.markAsRead username MarkedAsRead
+
+             else
+                Cmd.none
+            )
+                :: notifyMessageRead more username
+
+
 
 -- View
+-- TODO: DISABLED INPUT IF NO USER IS SELECTED
+-- TODO: DISABLED BUTTON IF INPUT LENGTH IS 0
+
+
+view : Model -> Html msg
+view model =
+    div [ class "container-fluid" ]
+        [ viewHeader model
+        ]
+
+
+viewHeader : Model -> Html msg
+viewHeader model =
+    div
+        [ class "row"
+        , class "justify-content-end"
+        , css
+            [ position relative
+            , borderBottom3 (px 1) solid (hex "#cccccc")
+            , backgroundColor (hex "#ededed")
+            , padding (px 16)
+            ]
+        ]
+        [ div [ class "col-4" ] [ UserList.viewAvatar model.client.avatar ]
+        ]
