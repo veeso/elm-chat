@@ -5,13 +5,12 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.Message exposing (Conversation, Message, conversationDecoder, messageDecoder)
+module Data.Message exposing (Conversation, Message, conversationDecoder, markMessageAsRead, messageDecoder, pushMessage)
 
 -- Dependencies
 
 import Iso8601
 import Json.Decode exposing (Decoder, bool, field, list, map7, string)
-import Json.Encode as Encode
 import Time exposing (Posix)
 
 
@@ -41,6 +40,41 @@ type alias Message =
     , recv : Bool
     , read : Bool
     }
+
+
+
+-- Manipulation
+
+
+{-| Push a message at the end of the conversation
+
+    pushMessage [a, b, c] d -> [a, b, c, d]
+
+-}
+pushMessage : Conversation -> Message -> Conversation
+pushMessage conversation newMessage =
+    conversation ++ [ newMessage ]
+
+
+{-| Mark message with provided ID as read
+
+    markMessageAsRead [a, b] b -> a.read = ?, b.read = True
+
+-}
+markMessageAsRead : Conversation -> String -> Conversation
+markMessageAsRead conversation msgId =
+    case conversation of
+        [] ->
+            []
+
+        first :: more ->
+            (if first.id == msgId then
+                { first | read = True }
+
+             else
+                first
+            )
+                :: markMessageAsRead more msgId
 
 
 

@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Request.Auth exposing (Msg(..), authed, signin, signout, signup)
+module Request.Auth exposing (authed, signin, signout, signup)
 
 import Data.Jwt exposing (Jwt, jwtDecoder)
 import File exposing (File)
@@ -14,16 +14,10 @@ import Json.Decode exposing (Decoder, andThen, field, string)
 import Json.Encode as Encode
 
 
-type Msg
-    = SignedIn (Result Http.Error Jwt)
-    | Authed (Result Http.Error ())
-    | SignedOut (Result Http.Error ())
-
-
 {-| Send a POST request to sign in
 -}
-signin : String -> String -> Cmd Msg
-signin username password =
+signin : String -> String -> (Result Http.Error Jwt -> msg) -> Cmd msg
+signin username password msg =
     let
         user =
             Encode.object
@@ -34,14 +28,14 @@ signin username password =
     Http.post
         { url = ":3000/api/auth/signIn"
         , body = Http.jsonBody user
-        , expect = Http.expectJson SignedIn (authTokenDecoder |> andThen jwtDecoder)
+        , expect = Http.expectJson msg (authTokenDecoder |> andThen jwtDecoder)
         }
 
 
 {-| Send a POST request to sign up
 -}
-signup : String -> String -> Maybe File -> Cmd Msg
-signup username password avatar =
+signup : String -> String -> Maybe File -> (Result Http.Error Jwt -> msg) -> Cmd msg
+signup username password avatar msg =
     let
         user =
             Encode.object
@@ -62,28 +56,28 @@ signup username password avatar =
                                 []
                        )
                 )
-        , expect = Http.expectJson SignedIn (authTokenDecoder |> andThen jwtDecoder)
+        , expect = Http.expectJson msg (authTokenDecoder |> andThen jwtDecoder)
         }
 
 
 {-| Send a GET request to check whether the user is authed
 -}
-authed : Cmd Msg
-authed =
+authed : (Result Http.Error () -> msg) -> Cmd msg
+authed msg =
     Http.get
         { url = ":3000/api/auth/authed"
-        , expect = Http.expectWhatever Authed
+        , expect = Http.expectWhatever msg
         }
 
 
 {-| Send a POST request to sign out
 -}
-signout : Cmd Msg
-signout =
+signout : (Result Http.Error () -> msg) -> Cmd msg
+signout msg =
     Http.post
         { url = ":3000/api/auth/signOut"
         , body = emptyBody
-        , expect = Http.expectWhatever SignedOut
+        , expect = Http.expectWhatever msg
         }
 
 

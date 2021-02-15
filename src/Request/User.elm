@@ -5,21 +5,17 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Request.User exposing (Msg(..), getUsers)
+module Request.User exposing (getUsers)
 
 import Data.User exposing (User, usersDecoder)
 import Http
 
 
-type Msg
-    = GotUsers (Result Http.Error (List User))
-
-
 {-| Send a GET request to get the available users to chat with
 -}
-getUsers : Cmd Msg
-getUsers =
+getUsers : (Result Http.Error (List User) -> msg) -> Cmd msg
+getUsers msg =
     Http.get
         { url = ":3000/api/chat/users"
-        , expect = Http.expectJson GotUsers usersDecoder
+        , expect = Http.expectJson msg usersDecoder
         }

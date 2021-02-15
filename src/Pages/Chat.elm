@@ -7,7 +7,7 @@
 
 module Pages.Chat exposing (..)
 
-import Data.Message exposing (Conversation)
+import Data.Message as Messages
 import Data.User exposing (User)
 import Http
 import Request.Messages as ApiMessages
@@ -24,25 +24,25 @@ type alias Model =
     , users : List User -- The list of users
     , selectedUser : Maybe User -- The user I've selected
     , client : User -- Who ami?
-    , conversation : Maybe Conversation -- The conversation I'm having with selected user
+    , conversation : Messages.Conversation -- The conversation I'm having with selected user
     , error : Maybe Http.Error
     }
 
 
 
--- Init TODO: send request to get users
+-- Init
 
 
-init : User -> ( Model, Cmd ApiUsers.Msg )
+init : User -> ( Model, Cmd Msg )
 init client =
     ( { userInput = ""
       , users = []
       , selectedUser = Nothing
       , client = client
-      , conversation = Nothing
+      , conversation = []
       , error = Nothing
       }
-    , ApiUsers.getUsers
+    , ApiUsers.getUsers GotUsers
     )
 
 
@@ -54,8 +54,10 @@ type Msg
     = InputChanged String
     | MessageSubmit
     | UserListMsg UserList.Msg
-    | MessagesMsg ApiMessages.Msg
-    | UsersMsg ApiUsers.Msg
+    | GotUsers (Result Http.Error (List User))
+    | GotConversation (Result Http.Error Messages.Conversation)
+    | MessageSent (Result Http.Error Messages.Message)
+    | MarkedAsRead (Result Http.Error String)
     | Error Http.Error
 
 
@@ -69,33 +71,50 @@ update msg model =
         InputChanged newMsg ->
             ( { model | userInput = newMsg }, Cmd.none )
 
+        -- Update message box
         MessageSubmit ->
             ( { model | userInput = "" }, Cmd.none )
 
+        -- TODO: send message
         UserListMsg umsg ->
             case umsg of
                 UserList.UserSelected user ->
-                    ( { model | selectedUser = Just user }, Cmd.none )
+                    ( { model | selectedUser = Just user, conversation = [] }, Cmd.none )
 
-        MessagesMsg mmsg ->
-            case mmsg of
-                ApiMessages.GotConversation result ->
-                    case result of
-                        Ok conversation ->
-                            ( { model | conversation = Just conversation }, Cmd.none )
+        -- Set user and clear conversation
+        GotUsers result ->
+            case result of
+                Ok users ->
+                    ( { model | users = users }, Cmd.none )
 
-                        Err err ->
-                            update (Error err) model
+                -- Set users
+                Err err ->
+                    update (Error err) model
 
-        UsersMsg umsg ->
-            case umsg of
-                ApiUsers.GotUsers result ->
-                    case result of
-                        Ok users ->
-                            ( { model | users = users }, Cmd.none )
+        GotConversation result ->
+            case result of
+                Ok conversation ->
+                    ( { model | conversation = conversation }, Cmd.none )
 
-                        Err err ->
-                            update (Error err) model
+                -- Set conversation; TODO: mark all messages as read
+                Err err ->
+                    update (Error err) model
+
+        MessageSent result ->
+            case result of
+                Ok chatmsg ->
+                    ( { model | conversation = Messages.pushMessage model.conversation chatmsg }, Cmd.none )
+
+                Err err ->
+                    update (Error err) model
+
+        MarkedAsRead result ->
+            case result of
+                Ok msgid ->
+                    ( { model | conversation = Messages.markMessageAsRead model.conversation msgid }, Cmd.none )
+
+                Err err ->
+                    update (Error err) model
 
         Error err ->
             ( { model | error = Just err }, Cmd.none )

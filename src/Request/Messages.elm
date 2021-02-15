@@ -5,17 +5,11 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Request.Messages exposing (Msg(..), getConversation, markAsRead, sendMessage)
+module Request.Messages exposing (getConversation, markAsRead, sendMessage)
 
 import Data.Message exposing (Conversation, Message, conversationDecoder, messageDecoder)
 import Http
 import Json.Encode as Encode
-
-
-type Msg
-    = GotConversation (Result Http.Error Conversation)
-    | MessageSent (Result Http.Error Message)
-    | MarkedAsRead (Result Http.Error ())
 
 
 {-| Get conversation between current user and another
@@ -24,11 +18,11 @@ Current user is stored inside the JWT, so it's read by the server when you send 
     getConversation "foo"
 
 -}
-getConversation : String -> Cmd Msg
-getConversation username =
+getConversation : String -> (Result Http.Error Conversation -> msg) -> Cmd msg
+getConversation username msg =
     Http.get
         { url = ":3000/api/chat/history/" ++ username
-        , expect = Http.expectJson GotConversation conversationDecoder
+        , expect = Http.expectJson msg conversationDecoder
         }
 
 
@@ -37,8 +31,8 @@ getConversation username =
     sendMessage "omar" "Hello Omar! How are you?"
 
 -}
-sendMessage : String -> String -> Cmd Msg
-sendMessage recipient text =
+sendMessage : String -> String -> (Result Http.Error Message -> msg) -> Cmd msg
+sendMessage recipient text msg =
     let
         body =
             Encode.object
@@ -48,7 +42,7 @@ sendMessage recipient text =
     Http.post
         { url = ":3000/api/chat/send/" ++ recipient
         , body = Http.jsonBody body
-        , expect = Http.expectJson MessageSent messageDecoder
+        , expect = Http.expectJson msg messageDecoder
         }
 
 
@@ -56,11 +50,30 @@ sendMessage recipient text =
 
     getConversation "e13df554-55c3-4234-8f42-c6a560fbf5e7"
 
+    Returns the message ID if Ok
+
 -}
-markAsRead : String -> Cmd Msg
-markAsRead msgId =
+markAsRead : String -> (Result Http.Error String -> msg) -> Cmd msg
+markAsRead msgId msg =
     Http.post
         { url = ":3000/api/chat/setread/" ++ msgId
         , body = Http.emptyBody
-        , expect = Http.expectWhatever MarkedAsRead
+        , expect =
+            Http.expectStringResponse msg <|
+                \response ->
+                    case response of
+                        Http.BadUrl_ url ->
+                            Err (Http.BadUrl url)
+
+                        Http.Timeout_ ->
+                            Err Http.Timeout
+
+                        Http.NetworkError_ ->
+                            Err Http.NetworkError
+
+                        Http.BadStatus_ metadata _ ->
+                            Err (Http.BadStatus metadata.statusCode)
+
+                        Http.GoodStatus_ _ _ ->
+                            Ok msgId
         }
