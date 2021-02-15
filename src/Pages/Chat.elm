@@ -16,7 +16,7 @@ import Html.Styled.Attributes exposing (class, css)
 import Http
 import Request.Messages as ApiMessages
 import Request.User as ApiUsers
-import Views.UserList as UserList
+import Views.User as UserList
 
 
 
@@ -156,14 +156,14 @@ notifyMessageRead conversation username =
 -- TODO: DISABLED BUTTON IF INPUT LENGTH IS 0
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
         [ viewHeader model
         ]
 
 
-viewHeader : Model -> Html msg
+viewHeader : Model -> Html Msg
 viewHeader model =
     div
         [ class "row"
@@ -177,3 +177,32 @@ viewHeader model =
         ]
         [ div [ class "col-4" ] [ UserList.viewAvatar model.client.avatar ]
         ]
+
+
+{-| View user list; selected user is rendered differently
+
+    viewUserList [user1, user2, ..., usern] user2
+
+-}
+viewUserList : List User -> String -> Html Msg
+viewUserList users selected =
+    ul [ class "list-group" ]
+        (makeUserRows users selected)
+
+
+{-| Make user rows recursively
+-}
+makeUserRows : List User -> String -> List (Html Msg)
+makeUserRows users selected =
+    case users of
+        [] ->
+            []
+
+        first :: more ->
+            (if first.username == selected then
+                UserList.viewSelectedUserRow first
+
+             else
+                UserList.viewUserRow first (UserSelected first)
+            )
+                :: makeUserRows more selected

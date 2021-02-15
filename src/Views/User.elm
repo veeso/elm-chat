@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Views.UserList exposing (Msg(..), viewAvatar, viewAvatarColumn, viewLastActivity, viewUserList, viewUsername)
+module Views.User exposing (viewAvatar, viewAvatarAndStatus, viewLastActivity, viewSelectedUserRow, viewUserRow, viewUsername)
 
 import Css exposing (..)
 import Data.User exposing (User)
@@ -17,45 +17,10 @@ import Time exposing (Posix)
 import Utils exposing (prettyDateFormatter)
 
 
-{-| Events reported by this view
--}
-type Msg
-    = UserSelected User
-
-
-{-| View user list; selected user is rendered differently
-
-    viewUserList [user1, user2, ..., usern] user2
-
--}
-viewUserList : List User -> String -> Html Msg
-viewUserList users selected =
-    ul [ class "list-group" ]
-        (makeUserRows users selected)
-
-
-{-| Make user rows recursively
--}
-makeUserRows : List User -> String -> List (Html Msg)
-makeUserRows users selected =
-    case users of
-        [] ->
-            []
-
-        first :: more ->
-            (if first.username == selected then
-                viewSelectedUserRow first
-
-             else
-                viewUserRow first
-            )
-                :: makeUserRows more selected
-
-
 {-| View user row
 -}
-viewUserRow : User -> Html Msg
-viewUserRow user =
+viewUserRow : User -> msg -> Html msg
+viewUserRow user msg =
     li
         [ class "list-group-item"
         , css
@@ -68,8 +33,8 @@ viewUserRow user =
                 ]
             ]
         ]
-        [ div [ class "row align-items-center", onClick (UserSelected user) ]
-            [ viewAvatarColumn user.avatar user.online
+        [ div [ class "row align-items-center", onClick msg ]
+            [ viewAvatarAndStatus user.avatar user.online
             , viewUsername user.username
             , viewLastActivity user.lastActivity
             ]
@@ -78,7 +43,7 @@ viewUserRow user =
 
 {-| View user row for selected user
 -}
-viewSelectedUserRow : User -> Html Msg
+viewSelectedUserRow : User -> Html msg
 viewSelectedUserRow user =
     li
         [ class "list-group-item"
@@ -88,7 +53,7 @@ viewSelectedUserRow user =
             ]
         ]
         [ div [ class "row align-items-center" ]
-            [ viewAvatarColumn user.avatar user.online
+            [ viewAvatarAndStatus user.avatar user.online
             , viewUsername user.username
             , viewLastActivity user.lastActivity
             ]
@@ -97,7 +62,7 @@ viewSelectedUserRow user =
 
 {-| View username column
 -}
-viewUsername : String -> Html Msg
+viewUsername : String -> Html msg
 viewUsername username =
     div [ class "col-4" ]
         [ h6 [] [ text username ]
@@ -106,7 +71,7 @@ viewUsername username =
 
 {-| View user last activity
 -}
-viewLastActivity : Posix -> Html Msg
+viewLastActivity : Posix -> Html msg
 viewLastActivity lastActivity =
     div
         [ class "col align-self-end justify-content-end"
@@ -116,10 +81,10 @@ viewLastActivity lastActivity =
         ]
 
 
-{-| View avatar column
+{-| View avatar with status
 -}
-viewAvatarColumn : Maybe String -> Bool -> Html Msg
-viewAvatarColumn avatar online =
+viewAvatarAndStatus : Maybe String -> Bool -> Html msg
+viewAvatarAndStatus avatar online =
     div [ class "col-1" ]
         (viewAvatar avatar
             :: (if online then
@@ -133,7 +98,7 @@ viewAvatarColumn avatar online =
 
 {-| View avatar. If Nothing, use fallback avatar
 -}
-viewAvatar : Maybe String -> Html Msg
+viewAvatar : Maybe String -> Html msg
 viewAvatar avatar =
     img
         [ class "rounded-circle"
@@ -155,7 +120,7 @@ viewAvatar avatar =
 
 {-| Draw "online green dot" on the user avatar
 -}
-viewOnlineDot : Html Msg
+viewOnlineDot : Html msg
 viewOnlineDot =
     div
         [ css
