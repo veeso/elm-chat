@@ -12,10 +12,13 @@ import Data.Message as Messages
 import Data.User exposing (User)
 import Html
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (class, css)
+import Html.Styled.Attributes exposing (class, css, placeholder, readonly, value)
 import Http
 import Request.Messages as ApiMessages
 import Request.User as ApiUsers
+import Time
+import Utils exposing (isJust, prettyDateFormatter)
+import Views.Conversation as ConversationView
 import Views.User as UserList
 
 
@@ -152,17 +155,18 @@ notifyMessageRead conversation username =
 
 
 -- View
--- TODO: DISABLED INPUT IF NO USER IS SELECTED
--- TODO: DISABLED BUTTON IF INPUT LENGTH IS 0
 
 
 view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
         [ viewHeader model
+        , viewChatBody model
         ]
 
 
+{-| View chat header
+-}
 viewHeader : Model -> Html Msg
 viewHeader model =
     div
@@ -176,6 +180,56 @@ viewHeader model =
             ]
         ]
         [ div [ class "col-4" ] [ UserList.viewAvatar model.client.avatar ]
+        , div [ class "col-8" ] [ viewOtherUserInHeader model.selectedUser ]
+        ]
+
+
+{-| View the selected user info in the header
+-}
+viewOtherUserInHeader : Maybe User -> Html Msg
+viewOtherUserInHeader selectedUser =
+    case selectedUser of
+        Just user ->
+            div
+                [ class "row"
+                , class "align-items-center"
+                ]
+                [ UserList.viewAvatarAndStatus user.avatar user.online
+                , viewOtherUserUsername user.username
+                , viewOtherUserLastActivity user.lastActivity
+                ]
+
+        Nothing ->
+            div [] []
+
+
+{-| View the selected user last activity in the header
+-}
+viewOtherUserUsername : String -> Html Msg
+viewOtherUserUsername username =
+    div [ class "col-4" ] [ h6 [] [ text username ] ]
+
+
+{-| View the selected user last activity in the header
+-}
+viewOtherUserLastActivity : Time.Posix -> Html Msg
+viewOtherUserLastActivity lastActivity =
+    div [ class "col", class "algin-self-end", class "justify-content-end", css [ textAlign end ] ]
+        [ span [ css [ color (hex "#aaaaaa") ] ] [ text (prettyDateFormatter Time.utc lastActivity) ]
+        ]
+
+
+{-| View the chat body (main body of the chat; users + messages)
+-}
+viewChatBody : Model -> Html Msg
+viewChatBody model =
+    div [ class "row" ]
+        [ div [ class "col-4", css [ overflow auto ] ]
+            [ viewUserList model.users model.selectedUser
+            ]
+        , div [ class "col-8", css [ borderLeft3 (px 1) solid (hex "#cccccc"), overflow auto ] ]
+            [ ConversationView.viewConversation model.conversation model.client.username
+            ]
         ]
 
 
@@ -184,7 +238,7 @@ viewHeader model =
     viewUserList [user1, user2, ..., usern] user2
 
 -}
-viewUserList : List User -> String -> Html Msg
+viewUserList : List User -> Maybe User -> Html Msg
 viewUserList users selected =
     ul [ class "list-group" ]
         (makeUserRows users selected)
@@ -192,17 +246,69 @@ viewUserList users selected =
 
 {-| Make user rows recursively
 -}
-makeUserRows : List User -> String -> List (Html Msg)
+makeUserRows : List User -> Maybe User -> List (Html Msg)
 makeUserRows users selected =
     case users of
         [] ->
             []
 
         first :: more ->
-            (if first.username == selected then
-                UserList.viewSelectedUserRow first
+            (case selected of
+                Just selectedUser ->
+                    if first.username == selectedUser.username then
+                        UserList.viewSelectedUserRow first
 
-             else
-                UserList.viewUserRow first (UserSelected first)
+                    else
+                        UserList.viewUserRow first (UserSelected first)
+
+                Nothing ->
+                    UserList.viewUserRow first (UserSelected first)
             )
                 :: makeUserRows more selected
+
+
+{-| View chat bottom (input text and send button)
+-}
+viewBottom : Model -> Html Msg
+viewBottom model =
+    div
+        [ class "row"
+        , class "justify-content-end"
+        ]
+        [ div
+            [ class "col-4"
+            , css [ backgroundColor (hex "#ededed") ]
+            ]
+            []
+        , viewInputArea model.userInput (isJust model.selectedUser)
+        ]
+
+
+{-| View chat input area (input text and send button)
+
+    - The button is disabled if message is empty
+    - The text field is disabled if no user is selected
+
+-}
+viewInputArea : String -> Bool -> Html Msg
+viewInputArea message userIsSelected =
+    div
+        [ class "col-8"
+        , css [ backgroundColor (hex "#ededed"), padding (Css.em 1) ]
+        ]
+        [ input
+            [ class "form-text"
+            , placeholder "Type a message"
+            , css [ width (pct 80), fontSize (Css.em 1.2) ]
+            , value message
+            , readonly (not userIsSelected)
+            ]
+            []
+        , button
+            [ class "btn"
+            , class "btn-primary"
+            , css [ float right ]
+            , Html.Styled.Attributes.disabled (String.length message == 0)
+            ]
+            [ text "Send" ]
+        ]

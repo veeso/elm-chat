@@ -27,7 +27,7 @@ type MessageDirection
 Arguments:
 
   - Conversation
-  - Username
+  - Username (client name)
 
 -}
 viewConversation : Conversation -> String -> Html msg

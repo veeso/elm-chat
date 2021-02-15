@@ -8,8 +8,8 @@
 module Utils exposing (..)
 
 import DateFormat
-import Time exposing (Posix, Zone)
 import Http
+import Time exposing (Posix, Zone)
 
 
 {-| Format a date with syntax => 2021/02/13 15:49
@@ -28,9 +28,9 @@ prettyDateFormatter =
         , DateFormat.minuteFixed
         ]
 
+
 {-| Format an HTTP error as a string
 -}
-
 fmtHttpError : Http.Error -> String
 fmtHttpError error =
     case error of
@@ -54,3 +54,36 @@ fmtHttpError error =
 
         Http.BadBody errorMessage ->
             errorMessage
+
+
+{-| Check whether a Maybe is Just
+
+    isJust (Maybe "foo") -> True
+    isJust Nothing -> False
+
+-}
+isJust : Maybe a -> Bool
+isJust m =
+    case m of
+        Just _ ->
+            True
+
+        Nothing ->
+            False
+
+
+{-| Check whether a Maybe is Nothing
+
+    isNothing Nothing -> True
+    isNothing (Maybe "foo") -> False
+
+-}
+isNothing : Maybe a -> Bool
+isNothing m =
+    case m of
+        Just _ ->
+            False
+
+        Nothing ->
+            True
+
