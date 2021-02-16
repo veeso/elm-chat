@@ -11,13 +11,16 @@ import Css exposing (..)
 import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes as Attributes exposing (class, css, href)
+import Html.Styled.Events exposing (onClick)
 
 
 {-| TopBarMessages defines the possible messages returned by the topbar
 Basically you provide a message for each link in the topbar
-- onSignOut: sign out pressed
+
+  - onSignOut: sign out pressed
+
 -}
-type alias TopBarMessages =
+type alias TopBarMessages msg =
     { onSignOut : msg
     }
 
@@ -27,7 +30,7 @@ type alias TopBarMessages =
     viewTopbar messages True
 
 -}
-viewTopbar : TopBarMessages -> Bool -> Html msg
+viewTopbar : TopBarMessages msg -> Bool -> Html msg
 viewTopbar messages isAuthed =
     nav
         [ class "navbar"
@@ -36,6 +39,7 @@ viewTopbar messages isAuthed =
         , css [ backgroundColor (hex "1293d8") ]
         ]
         [ viewTitle
+        , viewTopbarEntriesWrapper messages isAuthed
         ]
 
 
@@ -53,7 +57,7 @@ viewTitle =
 
 {-| View topbar entries wrapper
 -}
-viewTopbarEntriesWrapper : TopBarMessages -> Bool -> Html msg
+viewTopbarEntriesWrapper : TopBarMessages msg -> Bool -> Html msg
 viewTopbarEntriesWrapper messages isAuthed =
     div
         [ class "collapse"
@@ -65,7 +69,7 @@ viewTopbarEntriesWrapper messages isAuthed =
 
 {-| View topbar entries
 -}
-viewTopbarEntries : TopBarMessages -> Bool -> Html msg
+viewTopbarEntries : TopBarMessages msg -> Bool -> Html msg
 viewTopbarEntries messages isAuthed =
     ul
         [ class "navbar-nav"
@@ -73,7 +77,13 @@ viewTopbarEntries messages isAuthed =
         , class "mb-2"
         , class "mb-lg-0"
         ]
-        [ li [ class "nav-item" ] [ viewSignOut messages.onSignOut ]
+        [ li [ class "nav-item" ]
+            [ if isAuthed then
+                viewSignOut messages.onSignOut
+
+              else
+                text ""
+            ]
         ]
 
 
@@ -86,6 +96,7 @@ viewSignOut msg =
         , class "active"
         , href "#"
         , css [ color (hex "#ffffff") ]
+        , onClick msg
         ]
         [ i [ class "bi", class "bi-box-arrow-right" ] []
         , text " Sign out"

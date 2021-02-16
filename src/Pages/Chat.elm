@@ -19,6 +19,7 @@ import Request.User as ApiUsers
 import Time
 import Utils exposing (isJust, prettyDateFormatter)
 import Views.Conversation as ConversationView
+import Views.Topbar as Topbar
 import Views.User as UserList
 
 
@@ -65,6 +66,7 @@ type Msg
     | GotConversation (Result Http.Error Messages.Conversation)
     | MessageSent (Result Http.Error Messages.Message)
     | MarkedAsRead (Result Http.Error String)
+    | SignOut
     | Error Http.Error
 
 
@@ -128,6 +130,9 @@ update msg model =
                 Err err ->
                     update (Error err) model
 
+        SignOut ->
+            -- TODO: Handle sign out
+
         Error err ->
             ( { model | error = Just err }, Cmd.none )
 
@@ -159,10 +164,18 @@ notifyMessageRead conversation username =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container-fluid" ]
-        [ viewHeader model
-        , viewChatBody model
+    div []
+        [ viewTopbar
+        , div [ class "container-fluid" ]
+            [ viewHeader model
+            , viewChatBody model
+            ]
         ]
+
+
+viewTopbar : Html Msg
+viewTopbar =
+    Topbar.viewTopbar { onSignOut = SignOut } True
 
 
 {-| View chat header
