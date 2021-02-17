@@ -14,10 +14,12 @@ import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (class, css, placeholder, readonly, value)
 import Http
+import Request.Auth as ApiAuth
 import Request.Messages as ApiMessages
 import Request.User as ApiUsers
 import Time
-import Utils exposing (isJust, prettyDateFormatter)
+import Utils exposing (fmtHttpError, isJust, prettyDateFormatter)
+import Views.Alert as Alert
 import Views.Conversation as ConversationView
 import Views.Topbar as Topbar
 import Views.User as UserList
@@ -33,7 +35,7 @@ type alias Model =
     , selectedUser : Maybe User -- The user I've selected
     , client : User -- Who ami?
     , conversation : Messages.Conversation -- The conversation I'm having with selected user
-    , error : Maybe Http.Error
+    , error : Maybe String
     }
 
 
@@ -67,7 +69,9 @@ type Msg
     | MessageSent (Result Http.Error Messages.Message)
     | MarkedAsRead (Result Http.Error String)
     | SignOut
-    | Error Http.Error
+    | SignedOut (Result Http.Error ())
+    | Error String
+    | ErrorDismissed
 
 
 
@@ -103,7 +107,7 @@ update msg model =
 
                 -- Set users
                 Err err ->
-                    update (Error err) model
+                    update (Error (fmtHttpError err)) model
 
         GotConversation result ->
             case result of
@@ -112,7 +116,7 @@ update msg model =
                     ( { model | conversation = conversation }, Cmd.batch (notifyMessageRead conversation model.client.username) )
 
                 Err err ->
-                    update (Error err) model
+                    update (Error (fmtHttpError err)) model
 
         MessageSent result ->
             case result of
@@ -120,7 +124,7 @@ update msg model =
                     ( { model | conversation = Messages.pushMessage model.conversation chatmsg }, Cmd.none )
 
                 Err err ->
-                    update (Error err) model
+                    update (Error (fmtHttpError err)) model
 
         MarkedAsRead result ->
             case result of
@@ -128,13 +132,25 @@ update msg model =
                     ( { model | conversation = Messages.markMessageAsRead model.conversation msgid }, Cmd.none )
 
                 Err err ->
-                    update (Error err) model
+                    update (Error (fmtHttpError err)) model
 
         SignOut ->
-            -- TODO: Handle sign out
+            ( model, ApiAuth.signout SignedOut )
+
+        SignedOut result ->
+            case result of
+                Ok _ ->
+                    -- TODO: go to sign in somehow
+                    ( model, Cmd.none )
+
+                Err err ->
+                    update (Error (fmtHttpError err)) model
 
         Error err ->
             ( { model | error = Just err }, Cmd.none )
+
+        ErrorDismissed ->
+            ( { model | error = Nothing }, Cmd.none )
 
 
 {-| Mark all messages sent to us as read and notify remote
@@ -168,11 +184,26 @@ view model =
         [ viewTopbar
         , div [ class "container-fluid" ]
             [ viewHeader model
+            , viewErrorMessage model.error
             , viewChatBody model
             ]
         ]
 
 
+{-| View error message
+-}
+viewErrorMessage : Maybe String -> Html Msg
+viewErrorMessage error =
+    case error of
+        Just message ->
+            Alert.viewAlert message Alert.Error ErrorDismissed
+
+        Nothing ->
+            div [] []
+
+
+{-| View topbar
+-}
 viewTopbar : Html Msg
 viewTopbar =
     Topbar.viewTopbar { onSignOut = SignOut } True
