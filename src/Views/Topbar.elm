@@ -10,7 +10,7 @@ module Views.Topbar exposing (TopBarMessages, viewTopbar)
 import Css exposing (..)
 import Html
 import Html.Styled exposing (..)
-import Html.Styled.Attributes as Attributes exposing (class, css, href)
+import Html.Styled.Attributes exposing (class, css, href)
 import Html.Styled.Events exposing (onClick)
 
 
