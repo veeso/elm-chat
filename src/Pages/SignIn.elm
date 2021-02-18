@@ -62,6 +62,29 @@ type alias Model =
 
 
 
+-- Init
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( { credentials =
+            { username = ""
+            , password = ""
+            }
+      , signUpForm =
+            { username = ""
+            , password = ""
+            , pretype = ""
+            , avatar = Nothing
+            }
+      , focus = LoginUsername
+      , error = Nothing
+      }
+    , Cmd.none
+    )
+
+
+
 -- Update --
 
 
@@ -85,8 +108,12 @@ update msg model =
             ( { model | focus = focus }, Cmd.none )
 
         SignIn ->
-            -- TODO: validate forms
-            ( model, ApiAuth.signin model.credentials.username model.credentials.password GotAuthResult )
+            -- validate forms
+            case validateSignInForm model.credentials of
+                Ok _ ->
+                    ( model, ApiAuth.signin model.credentials.username model.credentials.password GotAuthResult )
+                Err errmsg ->
+                    ( { model | error = Just errmsg }, Cmd.none )
 
         SignUp ->
             -- TODO: validate forms
@@ -166,3 +193,33 @@ asRegUsernameIn updates the password retype inside a SignUpData record
 asRegPasswordRetypeIn : SignUpData -> String -> SignUpData
 asRegPasswordRetypeIn data password =
     { data | pretype = password }
+
+
+
+-- Validators
+
+
+{-| Check whether provided credentials are valid for sign in
+In case of error returns the error message
+-}
+validateSignInForm : UserCredentials -> Result String ()
+validateSignInForm credentials =
+    -- Check if values are set
+    if String.isEmpty credentials.username || String.isEmpty credentials.password then
+        Err "Username and password are required"
+
+    else
+        Ok ()
+
+{-| Check whether provided data for signin up are valid
+In case of error returns the error message
+-}
+validateSignUpForm : SignUpData -> Result String ()
+validateSignUpForm data =
+    -- Check username first
+    if String.isEmpty data.username || not(isAlphanumerical data.username) then
+        Err "Invalid username: must contain only alphanumeric characters!"
+    
+    else
+        -- Check password
+        

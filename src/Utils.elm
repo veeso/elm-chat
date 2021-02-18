@@ -9,6 +9,7 @@ module Utils exposing (..)
 
 import DateFormat
 import Http
+import Regex
 import Time exposing (Posix, Zone)
 
 
@@ -87,3 +88,17 @@ isNothing m =
         Nothing ->
             True
 
+
+{-| Check whether a string is alphanumerical
+
+    isAlphanumerical "pippo97" -> True
+    isAlphanumerical "mon-a" -> False
+
+-}
+isAlphanumerical : String -> Bool
+isAlphanumerical check =
+    Regex.contains (Maybe.withDefault Regex.never <| Regex.fromString "^[a-zA-Z0-9]+$") check
+
+isPasswordSafe : String -> Bool
+isPasswordSafe password =
+    
