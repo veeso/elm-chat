@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="minimum-scale=1, initial-scale=1, width=device-width"
+    />
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+    <link rel="stylesheet" href="custom.css" />
+    <title>elm chat mockup</title>
+  </head>
+
+  <body>
+    <header>
+      <!-- Top bar -->
+      <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #1293D8;">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#" style="color: white;">Elm-chat</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="#" style="color: white;"><i class="bi bi-box-arrow-right"></i>&nbsp;Sign out</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <h1>Mockup</h1>
+    <h2>Conversation</h2>
+    <div class="alert alert-danger window-error">
+      <span>Error message!</span>
+      <a href="#"><i class="bi bi-x"></i></a>
+    </div>
+    <hr />
+    <div>
+      <div class="container-fluid conversation-box">
+        <!-- Message in -->
+        <div class="row justify-content-start message-row">
+          <div class="col-3">
+            <div class="message message-in">
+              <span class="message-in-arrow">
+                <img src="../assets/static/arrow-in.svg" />
+              </span>
+              <div class="message-content">
+                <span>Hi there!</span>
+              </div>
+              <div class="message-date">
+                <span>23/11/2020 08:43</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- message out -->
+        <div class="row justify-content-end message-row">
+          <div class="col-3">
+            <div class="message message-out">
+              <span class="message-out-arrow">
+                <img src="../assets/static/arrow-out.svg" />
+              </span>
+              <div class="message-content">
+                <span>Hey omar! How are you?</span>
+              </div>
+              <div class="message-date">
+                <span>23/11/2020 08:43</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Message in -->
+        <div class="row justify-content-start message-row">
+          <div class="col-3">
+            <div class="message message-in">
+              <span class="message-in-arrow">
+                <img src="../assets/static/arrow-in.svg" />
+              </span>
+              <div class="message-content">
+                <span>I'm fine, thanks! How's your day going instead?</span>
+              </div>
+              <div class="message-date">
+                <span>23/11/2020 08:43</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- message out -->
+        <div class="row justify-content-end message-row">
+          <div class="col-3">
+            <div class="message message-out">
+              <span class="message-out-arrow">
+                <img src="../assets/static/arrow-out.svg" />
+              </span>
+              <div class="message-content">
+                <span
+                  >Nothing special tbh, just trying to make a chat in Elm</span
+                >
+              </div>
+              <div class="message-date">
+                <span>23/11/2020 08:43</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Message in -->
+        <div class="row justify-content-start message-row">
+          <div class="col-3">
+            <div class="message message-in">
+              <span class="message-in-arrow">
+                <img src="../assets/static/arrow-in.svg" />
+              </span>
+              <div class="message-content">
+                <span>That's cool man! Can I join you?</span>
+              </div>
+              <div class="message-date">
+                <span>23/11/2020 08:43</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- message out -->
+        <div class="row justify-content-end message-row">
+          <div class="col-3">
+            <div class="message message-out">
+              <span class="message-out-arrow">
+                <img src="../assets/static/arrow-out.svg" />
+              </span>
+              <div class="message-content">
+                <span>no.</span>
+              </div>
+              <div class="message-date">
+                <span>23/11/2020 08:43</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr />
+    <h2>User list</h2>
+    <div class="container-fluid">
+      <ul class="list-group">
+        <!-- First user -->
+        <li class="list-group-item user-row">
+          <div class="row align-items-center">
+            <div class="col-1">
+              <img
+                class="rounded-circle"
+                style="height: 48px"
+                src="../assets/static/fallback-avatar.png"
+              />
+              <div class="online-dot"></div>
+            </div>
+            <div class="col-4">
+              <h6>Omar cazz* grosso</h6>
+            </div>
+            <div
+              class="col align-self-end justify-content-end"
+              style="text-align: end"
+            >
+              <span style="color: #aaa">yesterday</span>
+            </div>
+          </div>
+        </li>
+        <!-- First user (offline) -->
+        <li class="list-group-item user-row">
+          <div class="row align-items-center">
+            <div class="col-1">
+              <img
+                class="rounded-circle"
+                style="height: 48px"
+                src="../assets/static/fallback-avatar.png"
+              />
+            </div>
+            <div class="col-4">
+              <h6>Zio cannone</h6>
+            </div>
+            <div
+              class="col align-self-end justify-content-end"
+              style="text-align: end"
+            >
+              <span style="color: #aaa">yesterday</span>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <hr />
+    <!-- All together now -->
+    <h2>Chat box</h2>
+    <div style="max-height: 40vh">
+      <div class="container-fluid">
+        <!-- header -->
+        <div
+          class="row justify-content-end"
+          style="
+            position: relative;
+            border-bottom: 1px solid #ccc;
+            background-color: #ededed;
+            padding: 16px;
+          "
+        >
+          <!-- Self -->
+          <div class="col-4">
+            <img
+              class="rounded-circle"
+              style="height: 48px"
+              src="../assets/static/fallback-avatar.png"
+            />
+          </div>
+          <!-- Other user! -->
+          <div class="col-8">
+            <div class="row align-items-center">
+              <!-- Avatar + status -->
+              <div class="col-1">
+                <img
+                  class="rounded-circle"
+                  style="height: 48px"
+                  src="../assets/static/fallback-avatar.png"
+                />
+                <div class="online-dot"></div>
+              </div>
+              <!-- Username -->
+              <div class="col-4">
+                <h6>Omar cazz* grosso</h6>
+              </div>
+              <div
+                class="col align-self-end justify-content-end"
+                style="text-align: end"
+              >
+                <span style="color: #aaa">yesterday</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- User + chat -->
+        <div class="row">
+          <!-- Users -->
+          <div class="col-4" style="overflow: auto; max-height: 50vh">
+            <!-- DON'T COPY THIS -->
+            <ul class="list-group">
+              <!-- First user -->
+              <li class="list-group-item user-row">
+                <div class="row align-items-center">
+                  <div class="col-1">
+                    <img
+                      class="rounded-circle"
+                      style="height: 48px"
+                      src="../assets/static/fallback-avatar.png"
+                    />
+                    <div class="online-dot"></div>
+                  </div>
+                  <div class="col-4">
+                    <h6>Omar cazz* grosso</h6>
+                  </div>
+                  <div
+                    class="col align-self-end justify-content-end"
+                    style="text-align: end"
+                  >
+                    <span style="color: #aaa">yesterday</span>
+                  </div>
+                </div>
+              </li>
+              <!-- First user (offline) -->
+              <li class="list-group-item user-row">
+                <div class="row align-items-center">
+                  <div class="col-1">
+                    <img
+                      class="rounded-circle"
+                      style="height: 48px"
+                      src="../assets/static/fallback-avatar.png"
+                    />
+                  </div>
+                  <div class="col-4">
+                    <h6>Zio cannone</h6>
+                  </div>
+                  <div
+                    class="col align-self-end justify-content-end"
+                    style="text-align: end"
+                  >
+                    <span style="color: #aaa">yesterday</span>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <!-- Messages -->
+          <div class="col-8" style="border-left: 1px solid #ccc; overflow: auto; max-height: 50vh">
+            <!-- DON'T COPY THIS... -->
+            <div class="container-fluid conversation-box">
+              <!-- Message in -->
+              <div class="row justify-content-start message-row">
+                <div class="col-3">
+                  <div class="message message-in">
+                    <span class="message-in-arrow">
+                      <img src="../assets/static/arrow-in.svg" />
+                    </span>
+                    <div class="message-content">
+                      <span>Hi there!</span>
+                    </div>
+                    <div class="message-date">
+                      <span>23/11/2020 08:43</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- message out -->
+              <div class="row justify-content-end message-row">
+                <div class="col-3">
+                  <div class="message message-out">
+                    <span class="message-out-arrow">
+                      <img src="../assets/static/arrow-out.svg" />
+                    </span>
+                    <div class="message-content">
+                      <span>Hey omar! How are you?</span>
+                    </div>
+                    <div class="message-date">
+                      <span>23/11/2020 08:43</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Message in -->
+              <div class="row justify-content-start message-row">
+                <div class="col-3">
+                  <div class="message message-in">
+                    <span class="message-in-arrow">
+                      <img src="../assets/static/arrow-in.svg" />
+                    </span>
+                    <div class="message-content">
+                      <span
+                        >I'm fine, thanks! How's your day going instead?</span
+                      >
+                    </div>
+                    <div class="message-date">
+                      <span>23/11/2020 08:43</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- message out -->
+              <div class="row justify-content-end message-row">
+                <div class="col-3">
+                  <div class="message message-out">
+                    <span class="message-out-arrow">
+                      <img src="../assets/static/arrow-out.svg" />
+                    </span>
+                    <div class="message-content">
+                      <span
+                        >Nothing special tbh, just trying to make a chat in
+                        Elm</span
+                      >
+                    </div>
+                    <div class="message-date">
+                      <span>23/11/2020 08:43</span>
+                    </div>
+                    <div class="message-state">
+                      <i class="bi bi-eye-fill"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Message in -->
+              <div class="row justify-content-start message-row">
+                <div class="col-3">
+                  <div class="message message-in">
+                    <span class="message-in-arrow">
+                      <img src="../assets/static/arrow-in.svg" />
+                    </span>
+                    <div class="message-content">
+                      <span>That's cool man! Can I join you?</span>
+                    </div>
+                    <div class="message-date">
+                      <span>23/11/2020 08:43</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- message out -->
+              <div class="row justify-content-end message-row">
+                <div class="col-3">
+                  <div class="message message-out">
+                    <span class="message-out-arrow">
+                      <img src="../assets/static/arrow-out.svg" />
+                    </span>
+                    <div class="message-content">
+                      <span>no.</span>
+                    </div>
+                    <div class="message-date">
+                      <span>23/11/2020 08:43</span>
+                    </div>
+                    <div class="message-state">
+                      <i class="bi bi-inbox-fill"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Bottom  (input text)-->
+        <div class="row justify-content-end">
+          <!-- Empty space -->
+          <div class="col-4" style="background-color: #ededed;"></div>
+          <div class="col-8" style="background-color: #ededed; padding: 1em;">
+            <input type="text" style="width: 80%; font-size: 1.2em;" placeholder="Type a message" class="form-text" />
+            <button type="submit" style="float:right" class="btn btn-primary">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
