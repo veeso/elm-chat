@@ -31,9 +31,15 @@ prettyDateFormatter =
 
 
 {-| Format an HTTP error as a string
+You can provide a function to call to handle BadStatus and return a different string for each status
+
+    fmtHttpError Http.Timeout Nothing -> "Unable to reach the server, try again"
+    fmtHttpError (Http.BadStatus 500) Nothing -> "The server had a problem, try again later"
+    fmtHttpError (Http.BadStatus 500) Just mycb -> "My custom message for 500"
+
 -}
-fmtHttpError : Http.Error -> String
-fmtHttpError error =
+fmtHttpError : Http.Error -> Maybe (Int -> String) -> String
+fmtHttpError error handleStatus =
     case error of
         Http.BadUrl url ->
             "The URL " ++ url ++ " was invalid"
@@ -44,14 +50,27 @@ fmtHttpError error =
         Http.NetworkError ->
             "Unable to reach the server, check your network connection"
 
-        Http.BadStatus 500 ->
-            "The server had a problem, try again later"
+        Http.BadStatus httpcode ->
+            case handleStatus of
+                Just statusMsgRsolver ->
+                    statusMsgRsolver httpcode
 
-        Http.BadStatus 400 ->
-            "Verify your information and try again"
+                Nothing ->
+                    case httpcode of
+                        500 ->
+                            "The server had a problem, try again later"
 
-        Http.BadStatus _ ->
-            "Unknown error"
+                        400 ->
+                            "Verify your information and try again"
+
+                        401 ->
+                            "Sorry, but you need to authenticate to do that"
+
+                        403 ->
+                            "Sorry, you're not allowed to do that"
+
+                        _ ->
+                            "There was an error in processing your request"
 
         Http.BadBody errorMessage ->
             errorMessage
@@ -99,6 +118,22 @@ isAlphanumerical : String -> Bool
 isAlphanumerical check =
     Regex.contains (Maybe.withDefault Regex.never <| Regex.fromString "^[a-zA-Z0-9]+$") check
 
+
+{-| Check whether a password is safe.
+A password must contain:
+
+    - at least one lower case character
+    - at least one uppercase character
+    - at least one special character
+    - at least one number
+
+and must be at least 8 characters length
+
+    isPasswordSafe "foobar123" -> False
+    isPasswordSafe "foobar" -> False
+    isPasswordSafe "FoObAr0!97" -> True
+
+-}
 isPasswordSafe : String -> Bool
 isPasswordSafe password =
-    
+    Regex.contains (Maybe.withDefault Regex.never <| Regex.fromString "^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{8,}$") password

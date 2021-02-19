@@ -16,7 +16,7 @@ import Html.Styled.Attributes exposing (class, css, placeholder, value)
 import Html.Styled.Events exposing (onFocus)
 import Http
 import Request.Auth as ApiAuth
-import Utils exposing (fmtHttpError, isJust)
+import Utils exposing (fmtHttpError, isAlphanumerical, isJust, isPasswordSafe)
 import Views.Alert as Alert
 import Views.Topbar as Topbar
 
@@ -96,6 +96,7 @@ type Msg
     | GotAuthResult (Result Http.Error Jwt)
     | Error String
     | ErrorDismissed
+    | NothingToDo
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -112,12 +113,18 @@ update msg model =
             case validateSignInForm model.credentials of
                 Ok _ ->
                     ( model, ApiAuth.signin model.credentials.username model.credentials.password GotAuthResult )
+
                 Err errmsg ->
                     ( { model | error = Just errmsg }, Cmd.none )
 
         SignUp ->
-            -- TODO: validate forms
-            ( model, ApiAuth.signup model.signUpForm.username model.signUpForm.password model.signUpForm.avatar GotAuthResult )
+            -- validate forms
+            case validateSignUpForm model.signUpForm of
+                Ok _ ->
+                    ( model, ApiAuth.signup model.signUpForm.username model.signUpForm.password model.signUpForm.avatar GotAuthResult )
+
+                Err errmsg ->
+                    ( { model | error = Just errmsg }, Cmd.none )
 
         GotAuthResult result ->
             case result of
@@ -126,14 +133,17 @@ update msg model =
                     ( model, Cmd.none )
 
                 Err err ->
-                    -- TODO: format error with sense
-                    ( { model | error = Just "error!" }, Cmd.none )
+                    -- format error with sense
+                    ( { model | error = Just <| fmtAuthResponse err }, Cmd.none )
 
         Error errmsg ->
             ( { model | error = Just errmsg }, Cmd.none )
 
         ErrorDismissed ->
             ( { model | error = Nothing }, Cmd.none )
+
+        NothingToDo ->
+            ( model, Cmd.none )
 
 
 updateText : Model -> String -> Model
@@ -196,6 +206,30 @@ asRegPasswordRetypeIn data password =
 
 
 
+-- Format
+
+
+{-| Format http bad response got from authentication request
+-}
+fmtAuthResponse : Http.Error -> String
+fmtAuthResponse err =
+    fmtHttpError err
+        (Just
+            (\x ->
+                case x of
+                    401 ->
+                        "Sorry, we couldn't find any user with that username and password"
+
+                    409 ->
+                        "Sorry, a user with that username already exists"
+
+                    _ ->
+                        "There was an error in trying to authenticate you. Please, retry later..."
+            )
+        )
+
+
+
 -- Validators
 
 
@@ -211,15 +245,57 @@ validateSignInForm credentials =
     else
         Ok ()
 
+
 {-| Check whether provided data for signin up are valid
 In case of error returns the error message
 -}
 validateSignUpForm : SignUpData -> Result String ()
 validateSignUpForm data =
     -- Check username first
-    if String.isEmpty data.username || not(isAlphanumerical data.username) then
+    if String.isEmpty data.username || not (isAlphanumerical data.username) then
         Err "Invalid username: must contain only alphanumeric characters!"
-    
+
     else
-        -- Check password
-        
+    -- Check password
+    if
+        not (isPasswordSafe data.password)
+    then
+        Err "Password is not valid: must be at least 8 characters long and contain at least one uppercase, one number and one special character"
+
+    else
+        Ok ()
+
+
+
+-- View
+
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ viewTopbar
+        , div [ class "container-fluid" ]
+            [ viewErrorMessage model.error
+            ]
+        ]
+
+
+{-| View error message
+-}
+viewErrorMessage : Maybe String -> Html Msg
+viewErrorMessage error =
+    case error of
+        Just message ->
+            Alert.viewAlert message Alert.Error ErrorDismissed
+
+        Nothing ->
+            div [] []
+
+
+{-| View topbar
+-}
+viewTopbar : Html Msg
+viewTopbar =
+    Topbar.viewTopbar { onSignOut = NothingToDo } False
+
+-- TODO: other views

@@ -103,7 +103,7 @@ update msg model =
 
                 -- Set users
                 Err err ->
-                    update (Error (fmtHttpError err)) model
+                    update (Error (fmtHttpError err Nothing)) model
 
         GotConversation result ->
             case result of
@@ -112,7 +112,7 @@ update msg model =
                     ( { model | conversation = conversation }, Cmd.batch (notifyMessageRead conversation model.client.username) )
 
                 Err err ->
-                    update (Error (fmtHttpError err)) model
+                    update (Error (fmtHttpError err Nothing)) model
 
         MessageSent result ->
             case result of
@@ -120,7 +120,7 @@ update msg model =
                     ( { model | conversation = Messages.pushMessage model.conversation chatmsg }, Cmd.none )
 
                 Err err ->
-                    update (Error (fmtHttpError err)) model
+                    update (Error (fmtHttpError err Nothing)) model
 
         MarkedAsRead result ->
             case result of
@@ -128,7 +128,7 @@ update msg model =
                     ( { model | conversation = Messages.markMessageAsRead model.conversation msgid }, Cmd.none )
 
                 Err err ->
-                    update (Error (fmtHttpError err)) model
+                    update (Error (fmtHttpError err Nothing)) model
 
         SignOut ->
             ( model, ApiAuth.signout SignedOut )
@@ -140,7 +140,7 @@ update msg model =
                     ( model, Cmd.none )
 
                 Err err ->
-                    update (Error (fmtHttpError err)) model
+                    update (Error (fmtHttpError err Nothing)) model
 
         Error err ->
             ( { model | error = Just err }, Cmd.none )
