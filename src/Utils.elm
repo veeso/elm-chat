@@ -8,7 +8,9 @@
 module Utils exposing (..)
 
 import DateFormat
+import File exposing (File)
 import Http
+import Json.Decode as Decode
 import Regex
 import Time exposing (Posix, Zone)
 
@@ -137,3 +139,10 @@ and must be at least 8 characters length
 isPasswordSafe : String -> Bool
 isPasswordSafe password =
     Regex.contains (Maybe.withDefault Regex.never <| Regex.fromString "^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{8,}$") password
+
+
+{-| Get files from input at `on "change"` event
+-}
+getFilesFromInput : (List File -> msg) -> Decode.Decoder msg
+getFilesFromInput message =
+    Decode.map message <| Decode.at [ "target", "files" ] (Decode.list File.decoder)

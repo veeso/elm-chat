@@ -13,6 +13,7 @@ import Data.User exposing (User)
 import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (class, css, placeholder, readonly, value)
+import Html.Styled.Events exposing (onClick, onInput)
 import Http
 import Request.Auth as ApiAuth
 import Request.Messages as ApiMessages
@@ -342,6 +343,7 @@ viewInputArea message userIsSelected =
             , css [ width (pct 80), fontSize (Css.em 1.2) ]
             , value message
             , readonly (not userIsSelected)
+            , onInput InputChanged
             ]
             []
         , button
@@ -349,6 +351,7 @@ viewInputArea message userIsSelected =
             , class "btn-primary"
             , css [ float right ]
             , Html.Styled.Attributes.disabled (String.length message == 0)
+            , onClick MessageSubmit
             ]
             [ text "Send" ]
         ]
