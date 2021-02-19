@@ -5,4 +5,17 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Main exposing (..)
+module Main exposing (main)
+
+import Pages.Chat as Chat
+import Pages.SignIn as SignIn
+import Route exposing (Route)
+import Url exposing (Url)
+
+-- Model
+
+type Model
+  = Home Chat.Model
+  | SignIn SignIn.Model
+  | NotFound
+
