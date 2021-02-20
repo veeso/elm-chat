@@ -3,10 +3,9 @@
 --  Copyright (C) 2021 - Christian Visintin
 --  Distribuited under "The Unlicense" license
 --  for more information, please refer to <https://unlicense.org>
--- TODO: replace with main
 
 
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Navigation as Nav
@@ -45,8 +44,8 @@ type alias Model =
 -- init
 
 
-init : Url -> Nav.Key -> ( Model, Cmd Msg )
-init url key =
+init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init _ url key =
     ( { session = Session.Guest key
       , view = Redirect url
       }
@@ -59,8 +58,8 @@ init url key =
 
 
 type Msg
-    = ChangedUrl Url
-    | ClickedLink Browser.UrlRequest
+    = UrlChanged Url
+    | LinkClicked Browser.UrlRequest
     | AuthedResult (Result Http.Error Authorization)
     | FromChat Chat.Msg
     | FromSignIn SignIn.Msg
@@ -74,10 +73,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     -- Match both message and view
     case ( msg, model.view ) of
-        ( ChangedUrl url, _ ) ->
+        ( UrlChanged url, _ ) ->
             changeRouteTo (Route.routeFromUrl url) model
 
-        ( ClickedLink request, _ ) ->
+        ( LinkClicked request, _ ) ->
             case request of
                 Browser.Internal url ->
                     case url.fragment of
@@ -178,6 +177,15 @@ viewBlank =
 
 
 
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
+
+
+
 -- Functions
 
 
@@ -227,3 +235,19 @@ tryGoToChat model =
 
         Nothing ->
             goToSignIn model
+
+
+
+-- Main
+
+
+main : Program () Model Msg
+main =
+    Browser.application
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
+        }
