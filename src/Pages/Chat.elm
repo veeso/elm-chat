@@ -304,10 +304,10 @@ makeUserRows users selected =
                         UserList.viewSelectedUserRow first
 
                     else
-                        UserList.viewUserRow first (UserSelected first)
+                        Html.Styled.map (\_ -> UserSelected first) (UserList.viewUserRow first)
 
                 Nothing ->
-                    UserList.viewUserRow first (UserSelected first)
+                    Html.Styled.map (\_ -> UserSelected first) (UserList.viewUserRow first)
             )
                 :: makeUserRows more selected
 

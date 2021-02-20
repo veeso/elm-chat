@@ -19,8 +19,8 @@ import Utils exposing (prettyDateFormatter)
 
 {-| View user row
 -}
-viewUserRow : User -> msg -> Html msg
-viewUserRow user msg =
+viewUserRow : User -> Html ()
+viewUserRow user =
     li
         [ class "list-group-item"
         , css
@@ -33,7 +33,7 @@ viewUserRow user msg =
                 ]
             ]
         ]
-        [ div [ class "row align-items-center", onClick msg ]
+        [ div [ class "row align-items-center", onClick () ]
             [ viewAvatarAndStatus user.avatar user.online
             , viewUsername user.username
             , viewLastActivity user.lastActivity
