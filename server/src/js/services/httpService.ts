@@ -12,6 +12,7 @@ import jwt from "express-jwt";
 import morgan from "morgan"; // Net logging
 import helmet from "helmet"; // secure express
 import multer from "multer"; // handle multipart
+import cors from "cors";
 import http from "http";
 import jsonwebtoken from "jsonwebtoken";
 import { unlink, unlinkSync } from "fs";
@@ -50,6 +51,8 @@ export default class HttpService {
     this.service.use(helmet());
     // Cookie parser
     this.service.use(cookieParser());
+    // Cors
+    this.service.use(cors());
     // Multer
     this.avatarUploadHnd = multer({ dest: assetsDir + "/avatar/" });
     // Make jwt secret
