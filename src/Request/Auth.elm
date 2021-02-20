@@ -10,7 +10,6 @@ module Request.Auth exposing (authed, signin, signout, signup)
 import Data.Auth exposing (Authorization, authDecoder)
 import File exposing (File)
 import Http exposing (emptyBody, filePart, multipartBody, stringPart)
-import Json.Decode exposing (Decoder, andThen, field, string)
 import Json.Encode as Encode
 
 

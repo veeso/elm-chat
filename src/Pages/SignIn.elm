@@ -16,6 +16,8 @@ import Html.Styled.Attributes as Attributes exposing (class, css, for, id, type_
 import Html.Styled.Events exposing (on, onClick, onFocus, onInput)
 import Http
 import Request.Auth as ApiAuth
+import Route
+import Session exposing (Session)
 import Utils exposing (fmtHttpError, getFilesFromInput, isAlphanumerical, isPasswordSafe)
 import Views.Alert as Alert
 import Views.Topbar as Topbar
@@ -54,7 +56,8 @@ type FocusHolder
 
 
 type alias Model =
-    { credentials : UserCredentials
+    { session : Session
+    , credentials : UserCredentials
     , signUpForm : SignUpData
     , focus : FocusHolder
     , error : Maybe String
@@ -65,9 +68,10 @@ type alias Model =
 -- Init
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { credentials =
+init : Session -> ( Model, Cmd Msg )
+init session =
+    ( { session = session
+      , credentials =
             { username = ""
             , password = ""
             }
@@ -134,8 +138,8 @@ update msg model =
         GotAuthResult result ->
             case result of
                 Ok _ ->
-                    -- TODO: do something
-                    ( model, Cmd.none )
+                    -- Go to chat page
+                    ( model, Route.replaceUrl (Session.getNavKey model.session) Route.Chat )
 
                 Err err ->
                     -- format error with sense

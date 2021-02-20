@@ -18,6 +18,8 @@ import Http
 import Request.Auth as ApiAuth
 import Request.Messages as ApiMessages
 import Request.User as ApiUsers
+import Route
+import Session exposing (Session)
 import Time
 import Utils exposing (fmtHttpError, isJust, prettyDateFormatter)
 import Views.Alert as Alert
@@ -31,10 +33,11 @@ import Views.User as UserList
 
 
 type alias Model =
-    { userInput : String
+    { session : Session
+    , userInput : String
     , users : List User -- The list of users
     , selectedUser : Maybe User -- The user I've selected
-    , client : User -- Who ami?
+    , client : User -- Who am I?
     , conversation : Messages.Conversation -- The conversation I'm having with selected user
     , error : Maybe String
     }
@@ -44,9 +47,10 @@ type alias Model =
 -- Init
 
 
-init : User -> ( Model, Cmd Msg )
-init client =
-    ( { userInput = ""
+init : Session -> User -> ( Model, Cmd Msg )
+init session client =
+    ( { session = session
+      , userInput = ""
       , users = []
       , selectedUser = Nothing
       , client = client
@@ -137,8 +141,8 @@ update msg model =
         SignedOut result ->
             case result of
                 Ok _ ->
-                    -- TODO: go to sign in somehow
-                    ( model, Cmd.none )
+                    -- go to sign in somehow
+                    ( model, Route.replaceUrl (Session.getNavKey model.session) Route.SignIn )
 
                 Err err ->
                     update (Error (fmtHttpError err Nothing)) model
