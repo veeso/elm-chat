@@ -14,6 +14,7 @@ Developed by Christian Visintin
       - [User](#user)
       - [Message](#message)
     - [Jwt](#jwt)
+    - [User Auth Object](#user-auth-object)
     - [Requests](#requests)
       - [Sign in](#sign-in)
       - [Sign up](#sign-up)
@@ -53,6 +54,7 @@ The backend for this application runs on NodeJS, while the front-end is, obvious
   - `Main.elm`: application entry point
   - `Ports.elm`: tracks all ports used by the application
   - `Route.elm`: This module exposes functions to translate URLs in the browser's Location bar to logical "pages" in the application, as well as functions to effect Location bar changes.
+  - `Session.elm`: this module contains the session values for the entire spa
   - `Utils.elm`: various utils functions
 - `elm.json`: elm project setup
 - `LICENSE`: Project license
@@ -140,6 +142,16 @@ A message has these attributes:
 
 The API server uses JWT to store authentication data. The JWT must be stored as a cookie named as `user`.
 
+### User Auth Object
+
+The user auth object contains information related to the current authed user and is returned by auth requests.
+
+```json
+{
+  "username": "foo"
+}
+```
+
 ### Requests
 
 For all the requests these codes might be returned:
@@ -162,13 +174,7 @@ In order to sign in, you must send a **POST** to `/api/auth/signIn` with the fol
 }
 ```
 
-the following response is returned:
-
-```json
-{
-  "jwt": "jwtdata"
-}
-```
+The response is the **UserAuthObject**.
 
 this request might return the following error codes:
 
@@ -189,13 +195,7 @@ As multipart/form-data content, provide as `data`:
 
 in addition, the field `avatar` may contain a file.
 
-the following response is returned:
-
-```json
-{
-  "jwt": "jwtdata"
-}
-```
+The response is the **UserAuthObject**.
 
 this request might return the following error codes:
 
@@ -216,6 +216,8 @@ this request might return the following error codes:
 #### Auth
 
 In order to check if still authenticated, you must send a **GET** to `/api/auth/authed`.
+
+The response in case of success is the **UserAuthObject**.
 
 this request might return the following error codes:
 

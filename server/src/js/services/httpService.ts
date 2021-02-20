@@ -19,6 +19,7 @@ import { unlink, unlinkSync } from "fs";
 import { Logger } from "log4js";
 // Lib
 import { sha512 } from "../lib/utils/utils";
+import AuthObject from "../lib/data/authobject";
 import Storage from "../lib/data/storage";
 import getLogger from "../lib/utils/logger";
 import MessageService from "./messageService";
@@ -154,8 +155,11 @@ export default class HttpService {
             const token = jsonwebtoken.sign({ username }, this.jwtSecret, {
               algorithm: "HS256",
             });
-            res.cookie("user", token);
-            res.send({ jwt: token });
+            res.cookie("user", token, { httpOnly: true});
+            const authObject: AuthObject = {
+              username,
+            }
+            res.send(authObject);
             // Set user online
             this.store.connectUser(username);
           } else {
@@ -210,8 +214,11 @@ export default class HttpService {
                 const token = jsonwebtoken.sign({ username }, this.jwtSecret, {
                   algorithm: "HS256",
                 });
-                res.cookie("user", token);
-                res.send({ jwt: token });
+                res.cookie("user", token, { httpOnly: true});
+                const authObject: AuthObject = {
+                  username,
+                }
+                res.send(authObject);
                 // Set user online
                 this.store.connectUser(username);
               } catch (err) {
@@ -277,7 +284,18 @@ export default class HttpService {
           jsonwebtoken.verify(req.cookies.user, this.jwtSecret, {
             algorithms: ["HS256"],
           });
-          res.send({});
+          const user = jsonwebtoken.decode(req.cookies.user);
+          if (typeof user === "string" || user === null) {
+            // bad jwt syntax
+            this.logger.error("JWT has bad syntax");
+            res.cookie("user", null);
+            res.sendStatus(401);
+          } else {
+            const authObject: AuthObject = {
+              username: user.username,
+            }
+            res.send(authObject);
+          }
         } catch (err) {
           this.logger.error("JWT has expired for user");
           res.cookie("user", null);
