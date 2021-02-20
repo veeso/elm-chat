@@ -62,11 +62,11 @@ signup username password avatar msg =
 
 {-| Send a GET request to check whether the user is authed
 -}
-authed : (Result Http.Error () -> msg) -> Cmd msg
+authed : (Result Http.Error Authorization -> msg) -> Cmd msg
 authed msg =
     Http.get
         { url = ":3000/api/auth/authed"
-        , expect = Http.expectWhatever msg
+        , expect = Http.expectJson msg authDecoder
         }
 
 
