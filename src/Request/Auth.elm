@@ -7,7 +7,7 @@
 
 module Request.Auth exposing (authed, signin, signout, signup)
 
-import Data.Jwt exposing (Jwt, jwtDecoder)
+import Data.Auth exposing (Authorization, authDecoder)
 import File exposing (File)
 import Http exposing (emptyBody, filePart, multipartBody, stringPart)
 import Json.Decode exposing (Decoder, andThen, field, string)
@@ -16,7 +16,7 @@ import Json.Encode as Encode
 
 {-| Send a POST request to sign in
 -}
-signin : String -> String -> (Result Http.Error Jwt -> msg) -> Cmd msg
+signin : String -> String -> (Result Http.Error Authorization -> msg) -> Cmd msg
 signin username password msg =
     let
         user =
@@ -28,13 +28,13 @@ signin username password msg =
     Http.post
         { url = ":3000/api/auth/signIn"
         , body = Http.jsonBody user
-        , expect = Http.expectJson msg (authTokenDecoder |> andThen jwtDecoder)
+        , expect = Http.expectJson msg authDecoder
         }
 
 
 {-| Send a POST request to sign up
 -}
-signup : String -> String -> Maybe File -> (Result Http.Error Jwt -> msg) -> Cmd msg
+signup : String -> String -> Maybe File -> (Result Http.Error Authorization -> msg) -> Cmd msg
 signup username password avatar msg =
     let
         user =
@@ -56,7 +56,7 @@ signup username password avatar msg =
                                 []
                        )
                 )
-        , expect = Http.expectJson msg (authTokenDecoder |> andThen jwtDecoder)
+        , expect = Http.expectJson msg authDecoder
         }
 
 
@@ -79,12 +79,3 @@ signout msg =
         , body = emptyBody
         , expect = Http.expectWhatever msg
         }
-
-
-
--- Deserializers
-
-
-authTokenDecoder : Decoder String
-authTokenDecoder =
-    field "data" string

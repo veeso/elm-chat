@@ -8,7 +8,7 @@
 module Pages.SignIn exposing (..)
 
 import Css exposing (..)
-import Data.Jwt exposing (Jwt)
+import Data.Auth exposing (Authorization)
 import File exposing (File)
 import Html
 import Html.Styled exposing (..)
@@ -94,7 +94,7 @@ type Msg
     | AvatarUploaded (List File)
     | SignIn
     | SignUp
-    | GotAuthResult (Result Http.Error Jwt)
+    | GotAuthResult (Result Http.Error Authorization)
     | Error String
     | ErrorDismissed
     | NothingToDo
