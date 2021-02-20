@@ -122,6 +122,17 @@ export default class HttpService {
     });
   }
 
+  private getAvatarUri(avatar: string | null): string | null {
+    if (avatar) {
+      // Process avatar...
+      const avatarTokens = avatar.split("/");
+      const filename = avatarTokens[avatarTokens.length - 1];
+      return "/assets/avatar/" + filename;
+    } else {
+      return null;
+    }
+  }
+
   // API Calls
 
   /**
@@ -155,10 +166,11 @@ export default class HttpService {
             const token = jsonwebtoken.sign({ username }, this.jwtSecret, {
               algorithm: "HS256",
             });
-            res.cookie("user", token, { httpOnly: true});
+            res.cookie("user", token, { httpOnly: true });
             const authObject: AuthObject = {
-              username,
-            }
+              username: checkUser.username,
+              avatar: this.getAvatarUri(checkUser.avatar),
+            };
             res.send(authObject);
             // Set user online
             this.store.connectUser(username);
@@ -208,16 +220,21 @@ export default class HttpService {
               }
               this.logger.debug("User", username, "has avatar at", avatar);
               try {
-                this.store.registerUser(username, avatar, password);
+                const newUser = this.store.registerUser(
+                  username,
+                  avatar,
+                  password
+                );
                 this.logger.info("Registered new user", username);
                 // Sign in
                 const token = jsonwebtoken.sign({ username }, this.jwtSecret, {
                   algorithm: "HS256",
                 });
-                res.cookie("user", token, { httpOnly: true});
+                res.cookie("user", token, { httpOnly: true });
                 const authObject: AuthObject = {
-                  username,
-                }
+                  username: newUser.username,
+                  avatar: this.getAvatarUri(newUser.avatar),
+                };
                 res.send(authObject);
                 // Set user online
                 this.store.connectUser(username);
@@ -291,10 +308,22 @@ export default class HttpService {
             res.cookie("user", null);
             res.sendStatus(401);
           } else {
-            const authObject: AuthObject = {
-              username: user.username,
+            // Use must exist
+            const checkUser = this.store.searchUser(user.username);
+            if (!checkUser) {
+              this.logger.error(
+                "Tried to authenticate with username",
+                user.username,
+                "but doesn't exist"
+              );
+              res.sendStatus(401);
+            } else {
+              const authObject: AuthObject = {
+                username: checkUser.username,
+                avatar: this.getAvatarUri(checkUser.avatar),
+              };
+              res.send(authObject);
             }
-            res.send(authObject);
           }
         } catch (err) {
           this.logger.error("JWT has expired for user");
@@ -322,13 +351,7 @@ export default class HttpService {
         if (user.username === username) {
           continue;
         }
-        let avatar: string | null = user.avatar;
-        if (avatar) {
-          // Process avatar...
-          const avatarTokens = avatar.split("/");
-          const filename = avatarTokens[avatarTokens.length - 1];
-          avatar = "/assets/avatar/" + filename;
-        }
+        const avatar: string | null = this.getAvatarUri(user.avatar);
         payload.push({
           username: user.username,
           avatar: avatar,

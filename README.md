@@ -148,7 +148,8 @@ The user auth object contains information related to the current authed user and
 
 ```json
 {
-  "username": "foo"
+  "username": "foo",
+  "avatar": "url"
 }
 ```
 

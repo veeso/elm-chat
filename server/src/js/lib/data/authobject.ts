@@ -6,4 +6,5 @@
 
 export default interface AuthObject {
   username: string;
+  avatar: string | null;
 }

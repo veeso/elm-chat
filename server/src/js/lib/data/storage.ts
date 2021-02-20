@@ -121,8 +121,9 @@ export default class Storage {
    * @param {string | null} avatar
    * @param {string} secret
    * @throws {Error} if user already exists
+   * @returns {User}
    */
-  public registerUser(username: string, avatar: string | null, secret: string) {
+  public registerUser(username: string, avatar: string | null, secret: string): User {
     if (this.searchUser(username) !== null) {
       throw new Error("User already exists");
     }
@@ -136,6 +137,7 @@ export default class Storage {
     this.users.push(user);
     // Notify subscribers
     this.notifyOnUserJoined(user);
+    return user;
   }
 
   /**
