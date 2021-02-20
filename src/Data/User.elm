@@ -5,10 +5,11 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.User exposing (User, addUser, sortUsers, updateUserStatus, userDecoder, usersDecoder)
+module Data.User exposing (User, addUser, fromAuthorization, sortUsers, updateUserStatus, userDecoder, usersDecoder)
 
 -- Dependencies
 
+import Data.Auth
 import Iso8601
 import Json.Decode exposing (Decoder, bool, field, list, map4, maybe, string)
 import Time exposing (Posix)
@@ -74,6 +75,21 @@ updateUserStatus users username online lastActivity =
                 first
             )
                 :: updateUserStatus more username online lastActivity
+
+
+
+-- Builder
+
+
+{-| Make user from authorization
+-}
+fromAuthorization : Data.Auth.Authorization -> User
+fromAuthorization auth =
+    { username = auth.username
+    , avatar = auth.avatar
+    , lastActivity = Time.millisToPosix 0
+    , online = True
+    }
 
 
 

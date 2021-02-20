@@ -7,7 +7,7 @@
 
 module Data.Auth exposing (Authorization, authDecoder)
 
-import Json.Decode exposing (Decoder, field, map, string)
+import Json.Decode exposing (Decoder, field, map2, maybe, string)
 
 
 {-| Authorization contains the authorization object, which contains data
@@ -17,12 +17,15 @@ about the current client
 
 -}
 type alias Authorization =
-    { username : String }
+    { username : String
+    , avatar : Maybe String
+    }
 
 
 {-| Decodes an authorization object from JSON
 -}
 authDecoder : Decoder Authorization
 authDecoder =
-    map Authorization
+    map2 Authorization
         (field "username" string)
+        (maybe (field "avatar" string))
