@@ -99,7 +99,8 @@ update msg model =
             )
 
         UserSelected user ->
-            ( { model | selectedUser = Just user, conversation = [] }, Cmd.none )
+            -- Select user and download the conversation for it
+            ( { model | selectedUser = Just user, conversation = [] }, ApiMessages.getConversation user.username GotConversation )
 
         GotUsers result ->
             case result of
@@ -136,13 +137,14 @@ update msg model =
                     update (Error (fmtHttpError err Nothing)) model
 
         SignOut ->
+            -- Send signout request
             ( model, ApiAuth.signout SignedOut )
 
         SignedOut result ->
             case result of
                 Ok _ ->
-                    -- go to sign in somehow
-                    ( model, Route.replaceUrl (Session.getNavKey model.session) Route.SignIn )
+                    -- Invalidate session and go to sign in
+                    ( { model | session = Session.signOut model.session }, Route.replaceUrl (Session.getNavKey model.session) Route.SignIn )
 
                 Err err ->
                     update (Error (fmtHttpError err Nothing)) model
@@ -166,8 +168,8 @@ notifyMessageRead conversation username =
             []
 
         first :: more ->
-            (if first.recipient == username then
-                ApiMessages.markAsRead username MarkedAsRead
+            (if first.recipient == username && not first.read then
+                ApiMessages.markAsRead first.id MarkedAsRead
 
              else
                 Cmd.none
@@ -187,6 +189,7 @@ view model =
             [ viewHeader model
             , viewErrorMessage model.error
             , viewChatBody model
+            , viewBottom model
             ]
         ]
 
@@ -269,10 +272,10 @@ viewOtherUserLastActivity lastActivity =
 viewChatBody : Model -> Html Msg
 viewChatBody model =
     div [ class "row" ]
-        [ div [ class "col-4", css [ overflow auto ] ]
+        [ div [ class "col-4", css [ overflow auto, padding (px 0) ] ]
             [ viewUserList model.users model.selectedUser
             ]
-        , div [ class "col-8", css [ borderLeft3 (px 1) solid (hex "#cccccc"), overflow auto ] ]
+        , div [ class "col-8", css [ borderLeft3 (px 1) solid (hex "#cccccc"), overflow auto, padding (px 0), height (vh 65) ] ]
             [ ConversationView.viewConversation model.conversation model.client.username
             ]
         ]

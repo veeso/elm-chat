@@ -22,10 +22,10 @@ import Utils exposing (prettyDateFormatter)
 viewUserRow : User -> Html ()
 viewUserRow user =
     li
-        [ class "list-group-item"
-        , css
-            [ hover
-                [ backgroundColor (hex "#eeeeee")
+        [ css
+            [ borderBottom3 (px 1) solid (hex "#aaaaaa")
+            , hover
+                [ backgroundColor (hex "#e1e1e1")
                 , cursor pointer
                 ]
             , active
@@ -46,9 +46,9 @@ viewUserRow user =
 viewSelectedUserRow : User -> Html msg
 viewSelectedUserRow user =
     li
-        [ class "list-group-item"
-        , css
-            [ backgroundColor (hex "#eeeeee")
+        [ css
+            [ borderBottom3 (px 1) solid (hex "#aaaaaa")
+            , backgroundColor (hex "#eeeeee")
             , cursor pointer
             ]
         ]
@@ -85,7 +85,7 @@ viewLastActivity lastActivity =
 -}
 viewAvatarAndStatus : Maybe String -> Bool -> Html msg
 viewAvatarAndStatus avatar online =
-    div [ class "col-1" ]
+    div [ class "col-2" ]
         (viewAvatar avatar
             :: (if online then
                     [ viewOnlineDot ]
