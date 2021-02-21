@@ -8,13 +8,13 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import jwt from "express-jwt";
-import morgan from "morgan"; // Net logging
-import helmet from "helmet"; // secure express
-import multer from "multer"; // handle multipart
-import cors from "cors";
-import http from "http";
+import jimp from "jimp";
 import jsonwebtoken from "jsonwebtoken";
+import jwt from "express-jwt";
+import helmet from "helmet"; // secure express
+import http from "http";
+import morgan from "morgan"; // Net logging
+import multer from "multer"; // handle multipart
 import { unlink, unlinkSync } from "fs";
 // Misc
 import { Logger } from "log4js";
@@ -25,6 +25,7 @@ import Storage from "../lib/data/storage";
 import getLogger from "../lib/utils/logger";
 import MessageService from "./messageService";
 import Message from "../lib/data/message";
+import Jimp from "jimp";
 
 export default class HttpService {
   private service: express.Express;
@@ -51,8 +52,6 @@ export default class HttpService {
     this.service.use(helmet());
     // Cookie parser
     this.service.use(cookieParser());
-    // Cors
-    this.service.use(cors());
     // Multer
     this.avatarUploadHnd = multer({ dest: assetsDir + "/avatar/" });
     // Make jwt secret
@@ -134,6 +133,31 @@ export default class HttpService {
     } else {
       return null;
     }
+  }
+
+  /**
+   * @description process avatar image
+   * @param {string} file
+   * @param {Function} onErr
+   * @param {Function} onSuccess
+   */
+  private processAvatar(file: string, onErr: Function, onSuccess: Function) {
+    Jimp.read(file, (err, image) => {
+      if (err) {
+        onErr(err);
+      } else {
+        image
+          .resize(256, 256)
+          .quality(60)
+          .write(file, (err) => {
+            if (err) {
+              onErr(err);
+            } else {
+              onSuccess();
+            }
+          });
+      }
+    });
   }
 
   // API Calls
@@ -218,38 +242,61 @@ export default class HttpService {
               const avatar = req.file
                 ? req.file.destination + "/" + req.file.filename
                 : null;
+              // Make signup callback
+              const signupCallback = () => {
+                try {
+                  const newUser = this.store.registerUser(
+                    username,
+                    avatar,
+                    password
+                  );
+                  this.logger.info("Registered new user", username);
+                  // Sign in
+                  const token = jsonwebtoken.sign(
+                    { username },
+                    this.jwtSecret,
+                    {
+                      algorithm: "HS256",
+                    }
+                  );
+                  res.cookie("user", token, { httpOnly: true });
+                  const authObject: AuthObject = {
+                    username: newUser.username,
+                    avatar: this.getAvatarUri(newUser.avatar),
+                  };
+                  res.send(authObject);
+                  // Set user online
+                  this.store.connectUser(username);
+                } catch (err) {
+                  // Remove file if set
+                  if (avatar) {
+                    unlink(avatar, () => {
+                      this.logger.info("Removed bad avatar at", avatar);
+                    });
+                  }
+                  this.logger.error("Could not register user:", err);
+                  res.sendStatus(500);
+                }
+              };
               if (!avatar) {
                 this.logger.debug(username, "didn't provide any avatar");
-              }
-              this.logger.debug("User", username, "has avatar at", avatar);
-              try {
-                const newUser = this.store.registerUser(
-                  username,
+                // Call callback
+                signupCallback();
+              } else {
+                // Process image
+                this.logger.debug("User", username, "has avatar at", avatar);
+                this.processAvatar(
                   avatar,
-                  password
+                  (err: any) => {
+                    this.logger.error("Could not process avatar image", err);
+                    // Bad request
+                    res.sendStatus(401);
+                  },
+                  () => {
+                    // Call callback
+                    signupCallback();
+                  }
                 );
-                this.logger.info("Registered new user", username);
-                // Sign in
-                const token = jsonwebtoken.sign({ username }, this.jwtSecret, {
-                  algorithm: "HS256",
-                });
-                res.cookie("user", token, { httpOnly: true });
-                const authObject: AuthObject = {
-                  username: newUser.username,
-                  avatar: this.getAvatarUri(newUser.avatar),
-                };
-                res.send(authObject);
-                // Set user online
-                this.store.connectUser(username);
-              } catch (err) {
-                // Remove file if set
-                if (avatar) {
-                  unlink(avatar, () => {
-                    this.logger.info("Removed bad avatar at", avatar);
-                  });
-                }
-                this.logger.error("Could not register user:", err);
-                res.sendStatus(500);
               }
             } else {
               this.logger.error(
