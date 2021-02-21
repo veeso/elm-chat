@@ -127,6 +127,7 @@ dist
 assets/avatar/
 
 build/
+mockup/
 
 # Artifacts
 main.js
