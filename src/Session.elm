@@ -52,3 +52,10 @@ getNavKey session =
 
         Guest key ->
             key
+
+-- Subscribers
+
+--changed : (Session -> msg) -> Nav.Key -> Sub msg
+--changed toMsg key =
+--    Api.viewerChanges (\maybeViewer -> toMsg (fromViewer key maybeViewer)) Viewer.decoder
+

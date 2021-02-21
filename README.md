@@ -97,12 +97,6 @@ cd server/
 node build/index.js -d ../assets/ -l DEBUG
 ```
 
-and start elm Reactor:
-
-```
-elm reactor
-```
-
 and finally to start NGINX with the configuration located at `nginx/elm-chat.conf`
 
 ## Features

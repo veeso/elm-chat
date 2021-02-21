@@ -19,7 +19,8 @@ import Url.Parser exposing ((</>), Parser, map, oneOf, s)
 
 
 type Route
-    = Chat
+    = Root
+    | Chat
     | SignIn
 
 
@@ -53,14 +54,15 @@ routeFromUrl url =
 routeParser : Parser (Route -> a) a
 routeParser =
     oneOf
-        [ map Chat (s "")
-        , map SignIn (s "signIn")
+        [ map Chat (s "chat")
+        , map SignIn (s "signin")
         ]
 
 
 {-| Convert Route to string representation
 
-routeToString SignIn -> "signIn"
+routeToString SignIn -> "/#/signin"
+routeToString Chat -> "/"
 
 -}
 routeToString : Route -> String
@@ -68,10 +70,13 @@ routeToString page =
     let
         pieces =
             case page of
-                Chat ->
+                Root ->
                     []
 
+                Chat ->
+                    [ "chat" ]
+
                 SignIn ->
-                    [ "signIn" ]
+                    [ "signin" ]
     in
     "#/" ++ String.join "/" pieces

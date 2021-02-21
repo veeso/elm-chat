@@ -97,8 +97,10 @@ update msg model =
         ( AuthedResult authRes, _ ) ->
             case authRes of
                 Ok authorization ->
-                    -- Go to chat; set authorized
-                    tryGoToChat { model | session = Session.signIn model.session <| User.fromAuthorization authorization }
+                    -- Go to home
+                    ( { model | session = Session.signIn model.session <| User.fromAuthorization authorization }
+                    , Route.replaceUrl (Session.getNavKey model.session) Route.Chat
+                    )
 
                 Err _ ->
                     -- Go to sign in
@@ -110,7 +112,8 @@ update msg model =
                 newState =
                     Chat.update submsg submodel
             in
-            ( { model | view = ChatView <| Tuple.first newState }
+            -- Update submodel and session
+            ( updateSubmodelAndSession model (Tuple.first newState).session (ChatView <| Tuple.first newState)
             , Cmd.map FromChat <| Tuple.second newState
             )
 
@@ -120,7 +123,8 @@ update msg model =
                 newState =
                     SignIn.update submsg submodel
             in
-            ( { model | view = SignInView <| Tuple.first newState }
+            -- Update submodel and session
+            ( updateSubmodelAndSession model (Tuple.first newState).session (SignInView <| Tuple.first newState)
             , Cmd.map FromSignIn <| Tuple.second newState
             )
 
@@ -189,6 +193,13 @@ subscriptions _ =
 -- Functions
 
 
+{-| Update model's submodel and session
+-}
+updateSubmodelAndSession : Model -> Session -> PageView -> Model
+updateSubmodelAndSession initModel session newView =
+    { initModel | view = newView, session = session }
+
+
 {-| Change page location
 -}
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -196,6 +207,17 @@ changeRouteTo maybeRoute model =
     case maybeRoute of
         Nothing ->
             ( { model | view = NotFound }, Cmd.none )
+
+        Just Route.Root ->
+            -- Go to chat or sign in
+            case Session.getUser model.session of
+                Just _ ->
+                    -- Authed; replace url and go to chat
+                    ( model, Route.replaceUrl (Session.getNavKey model.session) Route.Chat )
+
+                Nothing ->
+                    -- Go to sign in
+                    ( model, Route.replaceUrl (Session.getNavKey model.session) Route.SignIn )
 
         Just Route.Chat ->
             -- Must be authed

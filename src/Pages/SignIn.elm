@@ -9,6 +9,7 @@ module Pages.SignIn exposing (..)
 
 import Css exposing (..)
 import Data.Auth exposing (Authorization)
+import Data.User as User
 import File exposing (File)
 import Html
 import Html.Styled exposing (..)
@@ -137,9 +138,11 @@ update msg model =
 
         GotAuthResult result ->
             case result of
-                Ok _ ->
+                Ok authorization ->
                     -- Go to chat page
-                    ( model, Route.replaceUrl (Session.getNavKey model.session) Route.Chat )
+                    ( { model | session = Session.signIn model.session <| User.fromAuthorization authorization }
+                    , Route.replaceUrl (Session.getNavKey model.session) Route.Chat
+                    )
 
                 Err err ->
                     -- format error with sense

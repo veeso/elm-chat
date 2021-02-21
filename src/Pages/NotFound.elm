@@ -23,7 +23,7 @@ view =
         [ div [ class "row", class "align-content-center", class "justify-content-center" ]
             [ div [ class "col-12", class "align-content-center", class "justify-content-center" ]
                 [ h1 [ css [ textAlign center ] ] [ text "The page you were looking for, doesn't exist!" ]
-                , a [ href "/" ] [ text "Go back to home" ]
+                , a [ css [ textAlign center ], href "/" ] [ text "Go back to home" ]
                 ]
             ]
         ]
