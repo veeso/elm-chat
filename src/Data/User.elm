@@ -5,13 +5,13 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.User exposing (User, addUser, fromAuthorization, sortUsers, updateUserStatus, userDecoder, usersDecoder)
+module Data.User exposing (User, addUser, clearUserInbox, fromAuthorization, incrUserInbox, sortUsers, updateUserStatus, userDecoder, usersDecoder)
 
 -- Dependencies
 
 import Data.Auth
 import Iso8601
-import Json.Decode exposing (Decoder, bool, field, list, map4, maybe, string)
+import Json.Decode exposing (Decoder, bool, field, int, list, map5, maybe, string)
 import Time exposing (Posix)
 
 
@@ -22,6 +22,7 @@ obviously without its confidentials parameters.
     - avatar : Maybe String: optional uri to avatar
     - lastActivity : Date.Date: last activity for the user
     - online : Bool: True if user is online
+    - inboxSize: tracks the amount of messages UNREAD in the user inbox
 
 -}
 type alias User =
@@ -29,6 +30,7 @@ type alias User =
     , avatar : Maybe String
     , lastActivity : Posix
     , online : Bool
+    , inboxSize : Int
     }
 
 
@@ -77,6 +79,26 @@ updateUserStatus users username online lastActivity =
                 :: updateUserStatus more username online lastActivity
 
 
+{-| Increment user inbox size by one
+
+    incrUserInbox user.inboxSize = 4 -> user.inboSize = 5
+
+-}
+incrUserInbox : User -> User
+incrUserInbox user =
+    { user | inboxSize = user.inboxSize + 1 }
+
+
+{-| Clear user inbox
+
+    clearUserInbox user.inboxSize = 4 -> user.inboSize = 0
+
+-}
+clearUserInbox : User -> User
+clearUserInbox user =
+    { user | inboxSize = 0 }
+
+
 
 -- Builder
 
@@ -89,6 +111,7 @@ fromAuthorization auth =
     , avatar = auth.avatar
     , lastActivity = Time.millisToPosix 0
     , online = True
+    , inboxSize = 0
     }
 
 
@@ -107,8 +130,9 @@ usersDecoder =
 -}
 userDecoder : Decoder User
 userDecoder =
-    map4 User
+    map5 User
         (field "username" string)
         (maybe (field "avatar" string))
         (field "lastActivity" Iso8601.decoder)
         (field "online" bool)
+        (field "inboxSize" int)
