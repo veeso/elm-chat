@@ -259,6 +259,21 @@ export default class Storage {
   }
 
   /**
+   * @description get inbox size
+   * @param {string} username 
+   * @param {string} other 
+   * @returns {number}
+   * @throws {Error}
+   */
+  public getInboxSize(username: string, other: string): number {
+    // Get conversation
+    let conversation = this.getConversation(username, other);
+    // Filter conversation; message from other to us, unread
+    conversation = conversation.filter((msg) => (msg.to === username && !msg.read));
+    return conversation.length;
+  }
+
+  /**
    * @description mark a message as read. The id and the sender must match
    * @param {string} sender
    * @param {string} id

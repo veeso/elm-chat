@@ -401,12 +401,15 @@ export default class HttpService {
         if (user.username === username) {
           continue;
         }
+        // Get inbox size
+        const inboxSize = this.store.getInboxSize(username, user.username);
         const avatar: string | null = this.getAvatarUri(user.avatar);
         payload.push({
           username: user.username,
           avatar: avatar,
           lastActivity: user.lastActivity.toISOString(),
           online: user.online,
+          inboxSize,
         });
       }
       res.send(payload);
