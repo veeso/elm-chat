@@ -183,9 +183,9 @@ notifyMessageRead conversation username =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ css [ height (vh 80) ] ]
         [ viewTopbar
-        , div [ class "container-fluid" ]
+        , div [ class "container-fluid", css [ height (pct 95) ] ]
             [ viewHeader model
             , viewErrorMessage model.error
             , viewChatBody model
@@ -271,11 +271,11 @@ viewOtherUserLastActivity lastActivity =
 -}
 viewChatBody : Model -> Html Msg
 viewChatBody model =
-    div [ class "row" ]
-        [ div [ class "col-4", css [ overflow auto, padding (px 0) ] ]
+    div [ class "row", css [ height (pct 100) ] ]
+        [ div [ class "col-4", css [ overflowY auto, overflowX hidden, padding (px 0) ] ]
             [ viewUserList model.users model.selectedUser
             ]
-        , div [ class "col-8", css [ borderLeft3 (px 1) solid (hex "cccccc"), overflow auto, padding (px 0), height (vh 65) ] ]
+        , div [ class "col-8", css [ borderLeft3 (px 1) solid (hex "cccccc"), overflow auto, padding (px 0) ] ]
             [ ConversationView.viewConversation model.conversation model.client.username
             ]
         ]
@@ -325,7 +325,7 @@ viewBottom model =
         ]
         [ div
             [ class "col-4"
-            , css [ backgroundColor (hex "ededed") ]
+            , css [ backgroundColor (hex "ededed"), bottom (px 0), width (vw 100) ]
             ]
             []
         , viewInputArea model.userInput (isJust model.selectedUser)

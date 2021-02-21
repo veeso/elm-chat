@@ -66,7 +66,7 @@ viewSelectedUserRow user =
 -}
 viewUsername : String -> Html msg
 viewUsername username =
-    div [ class "col-4" ]
+    div [ class "col-8" ]
         [ h6 [] [ text username ]
         ]
 
