@@ -259,13 +259,15 @@ export default class Storage {
   }
 
   /**
-   * @description mark a message as read
+   * @description mark a message as read. The id and the sender must match
+   * @param {string} sender
    * @param {string} id
    * @throws {Exception}
    */
-  public markMessageAsRead(id: string) {
+  public markMessageAsRead(sender: string, id: string) {
     for (const message of this.messages) {
-      if (message.id === id) {
+      // NOTE: check to, because we (recipient) must match
+      if (message.id === id && message.to === sender) {
         const read: boolean = message.read;
         if (!read) {
           message.read = true;
