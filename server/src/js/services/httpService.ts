@@ -324,7 +324,7 @@ export default class HttpService {
 
     this.service.post("/api/auth/signOut", (req, res) => {
       // Delete coookie
-      res.cookie("user", null);
+      res.cookie("user", null, { httpOnly: true });
       // Set user online
       const username = req.user.username;
       const user = this.store.searchUser(username);
