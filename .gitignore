@@ -127,3 +127,6 @@ dist
 assets/avatar/
 
 build/
+
+# Artifacts
+main.js

@@ -67,6 +67,7 @@ To setup this project you first need to satisfy these requirements:
 - [Elm 0.19.1](https://guide.elm-lang.org/install/elm.html)
 - [NodeJS](https://nodejs.org/it/)
 - [Npm](https://www.npmjs.com/)
+- [Nginx](https://www.nginx.com/)
 
 Then we need to build the project
 
@@ -78,7 +79,7 @@ mkdir -p assets/avatar/
 # Build server
 cd server/
 npm install
-npm build
+npm run build
 # Start server
 node build/index.js -l DEBUG -d ../assets/
 ```
@@ -86,7 +87,23 @@ node build/index.js -l DEBUG -d ../assets/
 while for the frontend, we'll build it using elm:
 
 ```sh
+elm make src/Main.elm --optimize --output=main.js
 ```
+
+Then we need to start NodeJs
+
+```sh
+cd server/
+node build/index.js -d ../assets/ -l DEBUG
+```
+
+and start elm Reactor:
+
+```
+elm reactor
+```
+
+and finally to start NGINX with the configuration located at `nginx/elm-chat.conf`
 
 ## Features
 
