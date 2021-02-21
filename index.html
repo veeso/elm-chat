@@ -23,10 +23,29 @@
   </head>
 
   <body>
-
     <!-- Run elm application -->
     <script type="text/javascript">
       const app = Elm.Main.init();
+
+      // Connect to websockets on 'startChat' message
+      app.ports.startChat.subscribe(function (message) {
+        // Connect and add listener
+        console.log("Connecting via websockets...");
+        const socket = new WebSocket("ws://localhost");
+        // On connection
+        socket.addEventListener("open", function (_) {
+          console.log("Established connection via websockets");
+        });
+        // On Error
+        socket.addEventListener("error", function (err) {
+          console.error("WS error:", err);
+        });
+        // On message send to elm application
+        socket.addEventListener("message", function (event) {
+          // Send message to client
+          app.ports.messageReceiver.send(event.data);
+        });
+      });
     </script>
   </body>
 </html>
