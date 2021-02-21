@@ -322,7 +322,7 @@ In order to mark a message as read, you must send a **POST** to `/api/chat/setre
 this request might return the following error codes:
 
 - **401**: if the user is not signed in
-- **404**: if the provided message doesn't exist
+- **404**: if the provided message doesn't exist or if the recipient doesn't match with the client user
 
 ### WS Protocol - Message Service
 

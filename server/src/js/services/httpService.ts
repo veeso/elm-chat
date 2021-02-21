@@ -500,9 +500,10 @@ export default class HttpService {
 
     this.service.post("/api/chat/setread/:id", (req, res) => {
       const messageId = req.params.id;
+      const sender = req.user.username;
       if (messageId) {
         try {
-          this.store.markMessageAsRead(messageId);
+          this.store.markMessageAsRead(sender, messageId);
           this.logger.debug("Marked message", messageId, "as read");
           res.send({});
         } catch (err) {
