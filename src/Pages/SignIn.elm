@@ -280,7 +280,14 @@ validateSignUpForm data =
         Err "Password is not valid: must be at least 8 characters long and contain at least one uppercase, one number and one special character"
 
     else
+    -- Check if passwords matches
+    if
+        data.password == data.pretype
+    then
         Ok ()
+
+    else
+        Err "Passwords don't match"
 
 
 
@@ -337,6 +344,7 @@ viewSigninForm credentials =
                 [ form [ class "col-6" ]
                     [ viewSigninUsername credentials.username
                     , viewSigninPassword credentials.password
+                    , viewSubmitBtn "Sign In!" SignIn
                     ]
                 ]
             ]
@@ -362,6 +370,7 @@ viewSignupForm data =
                     , viewSignupPassword data.password
                     , viewSignupPasswordRetype data.pretype
                     , viewSignupAvatar
+                    , viewSubmitBtn "Sign Up!" SignUp
                     ]
                 ]
             ]
