@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Views.User exposing (viewAvatar, viewAvatarAndStatus, viewLastActivity, viewSelectedUserRow, viewUserRow, viewUsername)
+module Views.User exposing (viewAvatar, viewAvatarAndStatus, viewSelectedUserRow, viewUserRow, viewUsername)
 
 import Css exposing (..)
 import Data.User exposing (User)
@@ -13,8 +13,6 @@ import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (alt, class, css, src)
 import Html.Styled.Events exposing (onClick)
-import Time exposing (Posix)
-import Utils exposing (prettyDateFormatter)
 
 
 {-| View user row
@@ -41,7 +39,6 @@ viewUserRow user =
 
               else
                 div [ class "col-2" ] []
-            , viewLastActivity user.lastActivity
             ]
         ]
 
@@ -61,7 +58,6 @@ viewSelectedUserRow user =
             [ viewAvatarAndStatus user.avatar user.online
             , viewUsername user.username
             , div [ class "col-2" ] []
-            , viewLastActivity user.lastActivity
             ]
         ]
 
@@ -72,18 +68,6 @@ viewUsername : String -> Html msg
 viewUsername username =
     div [ class "col-4" ]
         [ h6 [] [ text username ]
-        ]
-
-
-{-| View user last activity
--}
-viewLastActivity : Posix -> Html msg
-viewLastActivity lastActivity =
-    div
-        [ class "col align-self-end justify-content-end"
-        , css [ textAlign center ]
-        ]
-        [ span [] [ text (prettyDateFormatter Time.utc lastActivity) ]
         ]
 
 
