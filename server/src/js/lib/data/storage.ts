@@ -97,7 +97,7 @@ export default class Storage {
       users = users.filter((u) => u.online === online);
     }
     // Sort by username
-    users.sort((a, b) => (a.username.localeCompare(b.username)));
+    users.sort((a, b) => a.username.localeCompare(b.username));
     return users;
   }
 
@@ -123,7 +123,11 @@ export default class Storage {
    * @throws {Error} if user already exists
    * @returns {User}
    */
-  public registerUser(username: string, avatar: string | null, secret: string): User {
+  public registerUser(
+    username: string,
+    avatar: string | null,
+    secret: string
+  ): User {
     if (this.searchUser(username) !== null) {
       throw new Error("User already exists");
     }
@@ -236,9 +240,8 @@ export default class Storage {
     for (const message of this.messages) {
       // Check if both users are involved
       if (
-        message.from === user1.username ||
-        message.to === user2.username ||
-        (message.from === user2.username && message.to === user1.username)
+        (message.from === username && message.to === other) ||
+        (message.to === username && message.from === other)
       ) {
         // Also mark the message as received ONLY if user who requested the message is the RECIPIENT!!!
         const recv: boolean = message.recv;
@@ -251,7 +254,7 @@ export default class Storage {
       }
     }
     // Sort conversation by date
-    conversation.sort((a, b) => (a.datetime.getTime() - b.datetime.getTime()));
+    conversation.sort((a, b) => a.datetime.getTime() - b.datetime.getTime());
     return conversation;
   }
 
