@@ -41,6 +41,7 @@ viewAlert content alert onDismiss =
             , left (px 0)
             , right (px 0)
             , textAlign center
+            , cursor pointer
             ]
         ]
         [ span []
@@ -68,7 +69,7 @@ getAlertClass alert =
             "alert-success"
 
         Error ->
-            "alert-error"
+            "alert-danger"
 
         Warning ->
             "alert-warning"
