@@ -16,6 +16,6 @@ import Http
 getUsers : (Result Http.Error (List User) -> msg) -> Cmd msg
 getUsers msg =
     Http.get
-        { url = ":3000/api/chat/users"
+        { url = "/api/chat/users"
         , expect = Http.expectJson msg usersDecoder
         }

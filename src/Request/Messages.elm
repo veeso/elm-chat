@@ -21,7 +21,7 @@ Current user is stored inside the JWT, so it's read by the server when you send 
 getConversation : String -> (Result Http.Error Conversation -> msg) -> Cmd msg
 getConversation username msg =
     Http.get
-        { url = ":3000/api/chat/history/" ++ username
+        { url = "/api/chat/history/" ++ username
         , expect = Http.expectJson msg conversationDecoder
         }
 
@@ -40,7 +40,7 @@ sendMessage recipient text msg =
                 ]
     in
     Http.post
-        { url = ":3000/api/chat/send/" ++ recipient
+        { url = "/api/chat/send/" ++ recipient
         , body = Http.jsonBody body
         , expect = Http.expectJson msg messageDecoder
         }
@@ -56,7 +56,7 @@ sendMessage recipient text msg =
 markAsRead : String -> (Result Http.Error String -> msg) -> Cmd msg
 markAsRead msgId msg =
     Http.post
-        { url = ":3000/api/chat/setread/" ++ msgId
+        { url = "/api/chat/setread/" ++ msgId
         , body = Http.emptyBody
         , expect =
             Http.expectStringResponse msg <|

@@ -25,7 +25,7 @@ signin username password msg =
                 ]
     in
     Http.post
-        { url = ":3000/api/auth/signIn"
+        { url = "/api/auth/signIn"
         , body = Http.jsonBody user
         , expect = Http.expectJson msg authDecoder
         }
@@ -43,7 +43,7 @@ signup username password avatar msg =
                 ]
     in
     Http.post
-        { url = ":3000/api/auth/signUp"
+        { url = "/api/auth/signUp"
         , body =
             multipartBody
                 ((stringPart "data" <| Encode.encode 0 user)
@@ -64,7 +64,7 @@ signup username password avatar msg =
 authed : (Result Http.Error Authorization -> msg) -> Cmd msg
 authed msg =
     Http.get
-        { url = ":3000/api/auth/authed"
+        { url = "/api/auth/authed"
         , expect = Http.expectJson msg authDecoder
         }
 
@@ -74,7 +74,7 @@ authed msg =
 signout : (Result Http.Error () -> msg) -> Cmd msg
 signout msg =
     Http.post
-        { url = ":3000/api/auth/signOut"
+        { url = "/api/auth/signOut"
         , body = emptyBody
         , expect = Http.expectWhatever msg
         }
