@@ -10,7 +10,7 @@ module Views.Topbar exposing (TopBarMessages, viewTopbar)
 import Css exposing (..)
 import Html
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (class, css, href)
+import Html.Styled.Attributes exposing (class, css)
 import Html.Styled.Events exposing (onClick)
 
 
@@ -35,7 +35,6 @@ viewTopbar messages isAuthed =
     nav
         [ class "navbar"
         , class "navbar-expand-lg"
-        , class "navbar-light"
         , css [ backgroundColor (hex "1293d8") ]
         ]
         [ viewTitle
@@ -49,8 +48,13 @@ viewTitle : Html msg
 viewTitle =
     a
         [ class "navbar-brand"
-        , css [ color (hex "#ffffff") ]
-        , href "#"
+        , css
+            [ color (hex "#ffffff")
+            , cursor pointer
+            , hover
+                [ color (hex "#f1f1f1")
+                ]
+            ]
         ]
         [ text "Elm-chat" ]
 
@@ -94,8 +98,13 @@ viewSignOut msg =
     a
         [ class "nav-link"
         , class "active"
-        , href "#"
-        , css [ color (hex "#ffffff") ]
+        , css
+            [ color (hex "#ffffff")
+            , cursor pointer
+            , hover
+                [ color (hex "#f1f1f1")
+                ]
+            ]
         , onClick msg
         ]
         [ i [ class "bi", class "bi-box-arrow-right" ] []
