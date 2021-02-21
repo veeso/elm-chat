@@ -123,8 +123,8 @@ viewMessageIn message =
             , position relative
             , flex none
             , lineHeight (Css.em 1.2)
-            , color (hex "#303030")
-            , backgroundColor (hex "#ffffff")
+            , color (hex "303030")
+            , backgroundColor (hex "ffffff")
             ]
         ]
         [ viewMessageArrowIn
@@ -148,8 +148,8 @@ viewMessageOut message =
             , position relative
             , flex none
             , lineHeight (Css.em 1.2)
-            , color (hex "#303030")
-            , backgroundColor (hex "#c6f5f8")
+            , color (hex "303030")
+            , backgroundColor (hex "c6f5f8")
             ]
         ]
         [ viewMessageArrowOut
@@ -193,7 +193,7 @@ viewMessageDate datetime =
             [ padding (Css.em 0.2)
             , fontSize (Css.em 0.8)
             , float right
-            , color (hex "#888888")
+            , color (hex "888888")
             ]
         ]
         [ span []
@@ -214,7 +214,7 @@ viewMessageState received read =
             [ padding (Css.em 0.2)
             , fontSize (Css.em 0.8)
             , float right
-            , color (hex "#888888")
+            , color (hex "888888")
             ]
         ]
         [ i
@@ -240,7 +240,7 @@ viewMessageArrowIn : Html msg
 viewMessageArrowIn =
     span
         [ css
-            [ color (hex "#fffafa")
+            [ color (hex "fffafa")
             , position absolute
             , display block
             , top (Css.em -0.3)
@@ -260,7 +260,7 @@ viewMessageArrowOut : Html msg
 viewMessageArrowOut =
     span
         [ css
-            [ color (hex "#c6f5f8")
+            [ color (hex "c6f5f8")
             , position absolute
             , display block
             , top (Css.em -0.3)

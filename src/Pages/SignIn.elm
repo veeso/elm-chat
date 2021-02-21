@@ -404,7 +404,7 @@ viewSigninUsername username =
     div [ class "mb-3" ]
         [ label [ for "signinUsername", class "form-label" ]
             [ text "Username "
-            , i [ css [ color (hex "#ff0000") ] ] [ text "*" ]
+            , i [ css [ color (hex "ff0000") ] ] [ text "*" ]
             ]
         , input
             [ id "signinUsername"
@@ -425,7 +425,7 @@ viewSigninPassword password =
     div [ class "mb-3" ]
         [ label [ for "signinPassword", class "form-label" ]
             [ text "Password "
-            , i [ css [ color (hex "#ff0000") ] ] [ text "*" ]
+            , i [ css [ color (hex "ff0000") ] ] [ text "*" ]
             ]
         , input
             [ id "signinPassword"
@@ -447,7 +447,7 @@ viewSignupUsername username =
     div [ class "mb-3" ]
         [ label [ for "signupUsername", class "form-label" ]
             [ text "Username "
-            , i [ css [ color (hex "#ff0000") ] ] [ text "*" ]
+            , i [ css [ color (hex "ff0000") ] ] [ text "*" ]
             ]
         , input
             [ id "signupUsername"
@@ -471,7 +471,7 @@ viewSignupPassword password =
     div [ class "mb-3" ]
         [ label [ for "signupPassword", class "form-label" ]
             [ text "Password "
-            , i [ css [ color (hex "#ff0000") ] ] [ text "*" ]
+            , i [ css [ color (hex "ff0000") ] ] [ text "*" ]
             ]
         , input
             [ id "signupPassword"
@@ -496,7 +496,7 @@ viewSignupPasswordRetype feedback =
     div [ class "mb-3" ]
         [ label [ for "signupPasswordRetype", class "form-label" ]
             [ text "Retype password "
-            , i [ css [ color (hex "#ff0000") ] ] [ text "*" ]
+            , i [ css [ color (hex "ff0000") ] ] [ text "*" ]
             ]
         , input
             [ id "signupPasswordRetype"

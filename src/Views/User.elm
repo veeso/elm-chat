@@ -23,19 +23,24 @@ viewUserRow : User -> Html ()
 viewUserRow user =
     li
         [ css
-            [ borderBottom3 (px 1) solid (hex "#aaaaaa")
+            [ borderBottom3 (px 1) solid (hex "aaaaaa")
             , hover
-                [ backgroundColor (hex "#e1e1e1")
+                [ backgroundColor (hex "e1e1e1")
                 , cursor pointer
                 ]
             , active
-                [ backgroundColor (hex "#ffffff")
+                [ backgroundColor (hex "ffffff")
                 ]
             ]
         ]
         [ div [ class "row align-items-center", onClick () ]
             [ viewAvatarAndStatus user.avatar user.online
             , viewUsername user.username
+            , if user.inboxSize > 0 then
+                viewInboxSize user.inboxSize
+
+              else
+                div [ class "col-2" ] []
             , viewLastActivity user.lastActivity
             ]
         ]
@@ -47,14 +52,15 @@ viewSelectedUserRow : User -> Html msg
 viewSelectedUserRow user =
     li
         [ css
-            [ borderBottom3 (px 1) solid (hex "#aaaaaa")
-            , backgroundColor (hex "#eeeeee")
+            [ borderBottom3 (px 1) solid (hex "aaaaaa")
+            , backgroundColor (hex "eeeeee")
             , cursor pointer
             ]
         ]
         [ div [ class "row align-items-center" ]
             [ viewAvatarAndStatus user.avatar user.online
             , viewUsername user.username
+            , div [ class "col-2" ] []
             , viewLastActivity user.lastActivity
             ]
         ]
@@ -78,6 +84,28 @@ viewLastActivity lastActivity =
         , css [ textAlign center ]
         ]
         [ span [] [ text (prettyDateFormatter Time.utc lastActivity) ]
+        ]
+
+
+{-| View user inbox size
+-}
+viewInboxSize : Int -> Html msg
+viewInboxSize size =
+    div
+        [ class "col-2 align-self-end justify-content-center" ]
+        [ div
+            [ css
+                [ maxWidth fitContent
+                , backgroundColor (hex "1293d8")
+                , color (hex "ffffff")
+                , borderRadius (px 4)
+                ]
+            ]
+            [ span [ css [ color (hex "ffffff") ] ]
+                [ i [ class "bi", class "bi-bell" ] []
+                , text <| String.fromInt size
+                ]
+            ]
         ]
 
 
@@ -130,7 +158,7 @@ viewOnlineDot =
             , marginLeft (px -16)
             , height (px 16)
             , width (px 16)
-            , backgroundColor (hex "#81de26")
+            , backgroundColor (hex "81de26")
             , borderRadius (pct 50)
             , display inlineBlock
             ]

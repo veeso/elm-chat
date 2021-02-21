@@ -9,7 +9,7 @@ module Pages.Chat exposing (..)
 
 import Css exposing (..)
 import Data.Message as Messages
-import Data.User exposing (User)
+import Data.User as Users exposing (User)
 import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (class, css, placeholder, readonly, value)
@@ -99,8 +99,8 @@ update msg model =
             )
 
         UserSelected user ->
-            -- Select user and download the conversation for it
-            ( { model | selectedUser = Just user, conversation = [] }, ApiMessages.getConversation user.username GotConversation )
+            -- Select user; clear its inbox and download the conversation for it
+            ( { model | selectedUser = Just (Users.clearUserInbox user), conversation = [] }, ApiMessages.getConversation user.username GotConversation )
 
         GotUsers result ->
             case result of
@@ -222,8 +222,8 @@ viewHeader model =
         , class "justify-content-end"
         , css
             [ position relative
-            , borderBottom3 (px 1) solid (hex "#cccccc")
-            , backgroundColor (hex "#ededed")
+            , borderBottom3 (px 1) solid (hex "cccccc")
+            , backgroundColor (hex "ededed")
             , padding (px 16)
             ]
         ]
@@ -263,7 +263,7 @@ viewOtherUserUsername username =
 viewOtherUserLastActivity : Time.Posix -> Html Msg
 viewOtherUserLastActivity lastActivity =
     div [ class "col", class "algin-self-end", class "justify-content-end", css [ textAlign end ] ]
-        [ span [ css [ color (hex "#aaaaaa") ] ] [ text (prettyDateFormatter Time.utc lastActivity) ]
+        [ span [ css [ color (hex "aaaaaa") ] ] [ text (prettyDateFormatter Time.utc lastActivity) ]
         ]
 
 
@@ -275,7 +275,7 @@ viewChatBody model =
         [ div [ class "col-4", css [ overflow auto, padding (px 0) ] ]
             [ viewUserList model.users model.selectedUser
             ]
-        , div [ class "col-8", css [ borderLeft3 (px 1) solid (hex "#cccccc"), overflow auto, padding (px 0), height (vh 65) ] ]
+        , div [ class "col-8", css [ borderLeft3 (px 1) solid (hex "cccccc"), overflow auto, padding (px 0), height (vh 65) ] ]
             [ ConversationView.viewConversation model.conversation model.client.username
             ]
         ]
@@ -325,7 +325,7 @@ viewBottom model =
         ]
         [ div
             [ class "col-4"
-            , css [ backgroundColor (hex "#ededed") ]
+            , css [ backgroundColor (hex "ededed") ]
             ]
             []
         , viewInputArea model.userInput (isJust model.selectedUser)
@@ -342,7 +342,7 @@ viewInputArea : String -> Bool -> Html Msg
 viewInputArea message userIsSelected =
     div
         [ class "col-8"
-        , css [ backgroundColor (hex "#ededed"), padding (Css.em 1) ]
+        , css [ backgroundColor (hex "ededed"), padding (Css.em 1) ]
         ]
         [ input
             [ class "form-text"

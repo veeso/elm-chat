@@ -49,10 +49,10 @@ viewTitle =
     a
         [ class "navbar-brand"
         , css
-            [ color (hex "#ffffff")
+            [ color (hex "ffffff")
             , cursor pointer
             , hover
-                [ color (hex "#f1f1f1")
+                [ color (hex "f1f1f1")
                 ]
             ]
         ]
@@ -99,10 +99,10 @@ viewSignOut msg =
         [ class "nav-link"
         , class "active"
         , css
-            [ color (hex "#ffffff")
+            [ color (hex "ffffff")
             , cursor pointer
             , hover
-                [ color (hex "#f1f1f1")
+                [ color (hex "f1f1f1")
                 ]
             ]
         , onClick msg
