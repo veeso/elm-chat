@@ -42,8 +42,8 @@
         });
         // On message send to elm application
         socket.addEventListener("message", function (event) {
-          // Send message to client
-          app.ports.messageReceiver.send(event.data);
+          // Send message to client through `chatMessageReceiver` port
+          app.ports.chatMessageReceiver.send(event.data);
         });
       });
     </script>
