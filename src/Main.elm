@@ -185,8 +185,14 @@ viewBlank =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
+subscriptions model =
+    case model.view of
+        ChatView submodel ->
+            -- Handle subscription for chat view
+            Sub.map FromChat (Chat.subscriptions submodel)
+
+        _ ->
+            Sub.none
 
 
 

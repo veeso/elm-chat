@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.WsMessage exposing (WsMessage, wsMessageDecoder)
+module Data.WsMessage exposing (WsMessage(..), wsMessageDecoder)
 
 import Data.Message
 import Data.User exposing (User, userDecoder)

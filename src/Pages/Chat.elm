@@ -10,11 +10,14 @@ module Pages.Chat exposing (..)
 import Css exposing (..)
 import Data.Message as Messages
 import Data.User as Users exposing (User)
+import Data.WsMessage exposing (WsMessage)
 import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (class, css, placeholder, readonly, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Http
+import Json.Decode
+import Ports
 import Request.Auth as ApiAuth
 import Request.Messages as ApiMessages
 import Request.User as ApiUsers
@@ -73,6 +76,8 @@ type Msg
     | GotConversation (Result Http.Error Messages.Conversation)
     | MessageSent (Result Http.Error Messages.Message)
     | MarkedAsRead (Result Http.Error String)
+    | GotWsMessage String
+    | ParsedWsMessage (Result Json.Decode.Error WsMessage)
     | SignOut
     | SignedOut (Result Http.Error ())
     | Error String
@@ -82,6 +87,7 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        -- Input
         InputChanged newMsg ->
             -- Update message box
             ( { model | userInput = newMsg }, Cmd.none )
@@ -98,6 +104,7 @@ update msg model =
                     Cmd.none
             )
 
+        -- Users
         UserSelected user ->
             -- Select user; clear its inbox and download the conversation for it
             ( { model | selectedUser = Just (Users.clearUserInbox user), conversation = [] }, ApiMessages.getConversation user.username GotConversation )
@@ -105,12 +112,14 @@ update msg model =
         GotUsers result ->
             case result of
                 Ok users ->
-                    ( { model | users = users }, Cmd.none )
+                    -- Once users have been loaded, start the WS channel
+                    ( { model | users = users }, Ports.startChat () )
 
                 -- Set users
                 Err err ->
                     update (Error (fmtHttpError err Nothing)) model
 
+        -- Messages
         GotConversation result ->
             case result of
                 -- Set conversation; notify to server messages have been read NOTE: we don't mark conversation as read HERE, because we do later for each message in `MarkedAsRead`
@@ -136,6 +145,7 @@ update msg model =
                 Err err ->
                     update (Error (fmtHttpError err Nothing)) model
 
+        -- Sign out
         SignOut ->
             -- Send signout request
             ( model, ApiAuth.signout SignedOut )
@@ -149,11 +159,57 @@ update msg model =
                 Err err ->
                     update (Error (fmtHttpError err Nothing)) model
 
+        -- Error
         Error err ->
             ( { model | error = Just err }, Cmd.none )
 
         ErrorDismissed ->
             ( { model | error = Nothing }, Cmd.none )
+
+        -- Websockets
+        GotWsMessage body ->
+            -- Parse ws message body
+            update (ParsedWsMessage <| Json.Decode.decodeString Data.WsMessage.wsMessageDecoder body) model
+
+        ParsedWsMessage result ->
+            case result of
+                Ok wsmessage ->
+                    ( handleWsMessage model wsmessage, Cmd.none )
+
+                Err error ->
+                    -- Set error as string
+                    update (Error <| Json.Decode.errorToString error) model
+
+
+{-| Update model based on the WsMessage type
+
+    handleWsMessage model mymsg -> model'
+
+-}
+handleWsMessage : Model -> WsMessage -> Model
+handleWsMessage model wsmessage =
+    -- Switch over message type
+    case wsmessage of
+        WsMessage.Delivery msg ->
+            -- Add message to conversation if user is current, otherwise increment inbox size
+        
+        WsMessage.Received ref ->
+            -- Set message as received, if conversation is active
+        
+        WsMessage.Read ref ->
+            -- Set message as read, if conversation is active
+        
+        WsMessage.Error err ->
+            -- Write error in model
+        
+        WsMessage.UserJoined user ->
+            -- Add user to user list
+        
+        WsMessage.UserOnline state ->
+            -- Change user state in list
+        
+        WsMessage.SessionExpired ->
+            -- Go back to login
 
 
 {-| Mark all messages sent to us as read and notify remote
@@ -176,6 +232,14 @@ notifyMessageRead conversation username =
             )
                 :: notifyMessageRead more username
 
+
+
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Ports.chatMessageReceiver GotWsMessage
 
 
 -- View
