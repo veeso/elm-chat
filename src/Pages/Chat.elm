@@ -174,7 +174,7 @@ update msg model =
         ParsedWsMessage result ->
             case result of
                 Ok wsmessage ->
-                    ( handleWsMessage model wsmessage, Cmd.none )
+                    handleWsMessage model wsmessage
 
                 Err error ->
                     -- Set error as string
@@ -186,30 +186,64 @@ update msg model =
     handleWsMessage model mymsg -> model'
 
 -}
-handleWsMessage : Model -> WsMessage -> Model
+handleWsMessage : Model -> WsMessage -> ( Model, Cmd Msg )
 handleWsMessage model wsmessage =
     -- Switch over message type
     case wsmessage of
-        WsMessage.Delivery msg ->
+        Data.WsMessage.Delivery msg ->
             -- Add message to conversation if user is current, otherwise increment inbox size
-        
-        WsMessage.Received ref ->
+            case model.selectedUser of
+                Just sUser ->
+                    if msg.sender == sUser.username then
+                        ( { model | conversation = Messages.pushMessage model.conversation msg }, Cmd.none )
+
+                    else
+                        ( { model | users = Users.incrementInboxSizeForUser model.users msg.sender }, Cmd.none )
+
+                Nothing ->
+                    ( { model | users = Users.incrementInboxSizeForUser model.users msg.sender }, Cmd.none )
+
+        Data.WsMessage.Received msgdata ->
             -- Set message as received, if conversation is active
-        
-        WsMessage.Read ref ->
+            case model.selectedUser of
+                Just sUser ->
+                    if msgdata.who == sUser.username then
+                        ( { model | conversation = Messages.markMessageAsRecv model.conversation msgdata.ref }, Cmd.none )
+
+                    else
+                        ( model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Data.WsMessage.Read msgdata ->
             -- Set message as read, if conversation is active
-        
-        WsMessage.Error err ->
+            case model.selectedUser of
+                Just sUser ->
+                    if msgdata.who == sUser.username then
+                        ( { model | conversation = Messages.markMessageAsRead model.conversation msgdata.ref }, Cmd.none )
+
+                    else
+                        ( model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Data.WsMessage.Error err ->
             -- Write error in model
-        
-        WsMessage.UserJoined user ->
-            -- Add user to user list
-        
-        WsMessage.UserOnline state ->
+            update (Error err) model
+
+        Data.WsMessage.UserJoined user ->
+            -- Add user to user list; then sort again list by username
+            ( { model | users = Users.sortUsers <| user :: model.users }, Cmd.none )
+
+        Data.WsMessage.UserOnline state ->
             -- Change user state in list
-        
-        WsMessage.SessionExpired ->
+            ( { model | users = Users.updateUserStatus model.users state.username state.online state.lastActivity }, Cmd.none )
+
+        Data.WsMessage.SessionExpired ->
             -- Go back to login
+            ( { model | session = Session.signOut model.session }, Route.replaceUrl (Session.getNavKey model.session) Route.SignIn )
 
 
 {-| Mark all messages sent to us as read and notify remote
@@ -240,6 +274,7 @@ notifyMessageRead conversation username =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Ports.chatMessageReceiver GotWsMessage
+
 
 
 -- View

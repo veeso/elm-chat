@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.Message exposing (Conversation, Message, conversationDecoder, markMessageAsRead, messageDecoder, pushMessage)
+module Data.Message exposing (Conversation, Message, conversationDecoder, markMessageAsRead, markMessageAsRecv, messageDecoder, pushMessage)
 
 -- Dependencies
 
@@ -56,6 +56,27 @@ pushMessage conversation newMessage =
     conversation ++ [ newMessage ]
 
 
+{-| Mark message with provided ID as received
+
+    markMessageAsRead [a, b] b -> a.recv = ?, b.recv = True
+
+-}
+markMessageAsRecv : Conversation -> String -> Conversation
+markMessageAsRecv conversation msgId =
+    case conversation of
+        [] ->
+            []
+
+        first :: more ->
+            (if first.id == msgId then
+                { first | recv = True }
+
+             else
+                first
+            )
+                :: markMessageAsRead more msgId
+
+
 {-| Mark message with provided ID as read
 
     markMessageAsRead [a, b] b -> a.read = ?, b.read = True
@@ -69,7 +90,7 @@ markMessageAsRead conversation msgId =
 
         first :: more ->
             (if first.id == msgId then
-                { first | read = True }
+                { first | read = True, recv = True }
 
              else
                 first
