@@ -31,7 +31,7 @@
       app.ports.startChat.subscribe(function (message) {
         // Connect and add listener
         console.log("Connecting via websockets...");
-        const socket = new WebSocket("ws://localhost");
+        const socket = new WebSocket("ws://localhost:3000/");
         // On connection
         socket.addEventListener("open", function (_) {
           console.log("Established connection via websockets");
