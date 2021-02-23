@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Request.Messages exposing (getConversation, markAsRead, sendMessage)
+module Request.Messages exposing (getConversation, markAsRead, markAsRecv, sendMessage)
 
 import Data.Message exposing (Conversation, Message, conversationDecoder, messageDecoder)
 import Http
@@ -57,6 +57,39 @@ markAsRead : String -> (Result Http.Error String -> msg) -> Cmd msg
 markAsRead msgId msg =
     Http.post
         { url = "/api/chat/setread/" ++ msgId
+        , body = Http.emptyBody
+        , expect =
+            Http.expectStringResponse msg <|
+                \response ->
+                    case response of
+                        Http.BadUrl_ url ->
+                            Err (Http.BadUrl url)
+
+                        Http.Timeout_ ->
+                            Err Http.Timeout
+
+                        Http.NetworkError_ ->
+                            Err Http.NetworkError
+
+                        Http.BadStatus_ metadata _ ->
+                            Err (Http.BadStatus metadata.statusCode)
+
+                        Http.GoodStatus_ _ _ ->
+                            Ok msgId
+        }
+
+
+{-| Mark provided message as received
+
+    getConversation "e13df554-55c3-4234-8f42-c6a560fbf5e7"
+
+    Returns the message ID if Ok
+
+-}
+markAsRecv : String -> (Result Http.Error String -> msg) -> Cmd msg
+markAsRecv msgId msg =
+    Http.post
+        { url = "/api/chat/setrecv/" ++ msgId
         , body = Http.emptyBody
         , expect =
             Http.expectStringResponse msg <|

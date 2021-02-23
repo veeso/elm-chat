@@ -501,6 +501,29 @@ export default class HttpService {
       res.sendStatus(405);
     });
 
+    // Set recv
+
+    this.service.post("/api/chat/setrecv/:id", (req, res) => {
+      const messageId = req.params.id;
+      const sender = req.user.username;
+      if (messageId) {
+        try {
+          this.store.markMessageAsReceived(sender, messageId);
+          this.logger.debug("Marked message", messageId, "as read");
+          res.send({});
+        } catch (err) {
+          this.logger.error("Could not set message", messageId, "as read", err);
+          res.sendStatus(404);
+        }
+      } else {
+        res.sendStatus(400);
+      }
+    });
+    this.service.all("/api/chat/setrecv/", (req, res) => {
+      this.logger.error("Bad method for 'setRead'; expected POST");
+      res.sendStatus(405);
+    });
+
     // Set read
 
     this.service.post("/api/chat/setread/:id", (req, res) => {

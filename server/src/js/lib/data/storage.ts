@@ -201,8 +201,8 @@ export default class Storage {
     // Make message
     const message: Message = {
       id: uuid(),
-      from: sender,
-      to: recipient,
+      from: from.username,
+      to: to.username,
       body,
       datetime: new Date(),
       recv: false,
@@ -302,9 +302,10 @@ export default class Storage {
    * @param {string} id
    * @throws {Exception}
    */
-  public markMessageAsReceived(id: string) {
+  public markMessageAsReceived(sender: string, id: string) {
     for (const message of this.messages) {
-      if (message.id === id) {
+      // NOTE: check to, because we (recipient) must match
+      if (message.id === id && message.to === sender) {
         const recv: boolean = message.recv;
         if (!recv) {
           message.recv = true;

@@ -76,6 +76,7 @@ type Msg
     | GotConversation (Result Http.Error Messages.Conversation)
     | MessageSent (Result Http.Error Messages.Message)
     | MarkedAsRead (Result Http.Error String)
+    | MarkedAsRecv (Result Http.Error String)
     | GotWsMessage String
     | ParsedWsMessage (Result Json.Decode.Error WsMessage)
     | SignOut
@@ -145,6 +146,14 @@ update msg model =
                 Err err ->
                     update (Error (fmtHttpError err Nothing)) model
 
+        MarkedAsRecv result ->
+            case result of
+                Ok msgid ->
+                    ( { model | conversation = Messages.markMessageAsRecv model.conversation msgid }, Cmd.none )
+
+                Err err ->
+                    update (Error (fmtHttpError err Nothing)) model
+
         -- Sign out
         SignOut ->
             -- Send signout request
@@ -195,13 +204,16 @@ handleWsMessage model wsmessage =
             case model.selectedUser of
                 Just sUser ->
                     if msg.sender == sUser.username then
-                        ( { model | conversation = Messages.pushMessage model.conversation msg }, Cmd.none )
+                        -- Report message as read
+                        ( { model | conversation = Messages.pushMessage model.conversation msg }, ApiMessages.markAsRead msg.id MarkedAsRead )
 
                     else
-                        ( { model | users = Users.incrementInboxSizeForUser model.users msg.sender }, Cmd.none )
+                        -- Report message as received
+                        ( { model | users = Users.incrementInboxSizeForUser model.users msg.sender }, ApiMessages.markAsRecv msg.id MarkedAsRecv )
 
                 Nothing ->
-                    ( { model | users = Users.incrementInboxSizeForUser model.users msg.sender }, Cmd.none )
+                    -- Report message as received
+                    ( { model | users = Users.incrementInboxSizeForUser model.users msg.sender }, ApiMessages.markAsRecv msg.id MarkedAsRecv )
 
         Data.WsMessage.Received msgdata ->
             -- Set message as received, if conversation is active
