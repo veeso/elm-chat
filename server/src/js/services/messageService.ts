@@ -153,7 +153,9 @@ export default class MessageService {
   private dispatchDelivery(message: Message) {
     // Error callback
     const errCb = (err: Error | undefined) => {
-      this.logger.error("Could not send message:", err);
+      if (err) {
+        this.logger.error("Could not send message:", err);
+      }
     };
     // Check if `to`'s socket exists
     const socket = this.channels.get(message.to);
@@ -184,7 +186,9 @@ export default class MessageService {
 
   private dispatchRead(message: Message) {
     const errCb = (err: Error | undefined) => {
-      this.logger.error("Could not send message:", err);
+      if (err) {
+        this.logger.error("Could not send message:", err);
+      }
     };
     // Check if `from`'s socket exists
     const socket = this.channels.get(message.from);
@@ -217,7 +221,9 @@ export default class MessageService {
 
   private dispatchReceived(message: Message) {
     const errCb = (err: Error | undefined) => {
-      this.logger.error("Could not send message:", err);
+      if (err) {
+        this.logger.error("Could not send message:", err);
+      }
     };
     // Check if `from`'s socket exists
     const socket = this.channels.get(message.from);
@@ -255,7 +261,9 @@ export default class MessageService {
       "has joined the chat"
     );
     const errCb = (err: Error | undefined) => {
-      this.logger.error("Could not send message:", err);
+      if (err) {
+        this.logger.error("Could not send message:", err);
+      }
     };
     // Serialize message
     const outMessage: WsMessage = makeUserJoined(user);
@@ -289,7 +297,9 @@ export default class MessageService {
       user.online ? "online" : "offline"
     );
     const errCb = (err: Error | undefined) => {
-      this.logger.error("Could not send message:", err);
+      if (err) {
+        this.logger.error("Could not send message:", err);
+      }
     };
     // Serialize message
     const outMessage: WsMessage = makeUserJoined(user);

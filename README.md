@@ -413,7 +413,8 @@ The payload of this kind of message is:
     "username": "foo",
     "avatar": "url",
     "lastActivity": "2021-02-06T12:40:32Z",
-    "online": true
+    "online": true,
+    "inboxSize": 0
   }
 }
 ```

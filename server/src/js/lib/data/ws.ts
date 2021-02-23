@@ -22,6 +22,7 @@ interface WsMessageUser {
   avatar: string | null;
   lastActivity: Date;
   online: boolean;
+  inboxSize: number;
 }
 
 export interface WsMessage {
@@ -145,6 +146,7 @@ export function parseMessage(data: any): WsMessage {
     const avatar = dataMsg["avatar"] ? dataMsg["avatar"] : null;
     const lastActivity = new Date(dataMsg["lastActivity"]);
     const online = dataMsg["online"];
+    const inboxSize = dataMsg["inboxSize"];
     return {
       type,
       user: {
@@ -152,6 +154,7 @@ export function parseMessage(data: any): WsMessage {
         avatar,
         lastActivity,
         online,
+        inboxSize,
       },
     };
   } else if (
@@ -240,6 +243,7 @@ export function makeUserJoined(user: User): WsMessage {
       avatar: user.avatar,
       lastActivity: user.lastActivity,
       online: user.online,
+      inboxSize: 0,
     },
   };
 }
