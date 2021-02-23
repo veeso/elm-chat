@@ -509,7 +509,7 @@ export default class HttpService {
       if (messageId) {
         try {
           this.store.markMessageAsReceived(sender, messageId);
-          this.logger.debug("Marked message", messageId, "as read");
+          this.logger.debug("Marked message", messageId, "as received");
           res.send({});
         } catch (err) {
           this.logger.error("Could not set message", messageId, "as read", err);

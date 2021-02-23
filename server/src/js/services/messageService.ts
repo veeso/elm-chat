@@ -208,7 +208,7 @@ export default class MessageService {
       "with recipient",
       wsMessage.who,
       "to",
-      message.to
+      message.from
     );
     socket.send(serialize(wsMessage), errCb);
     this.logger.info("Read notification dispatched to", message.to);
@@ -243,7 +243,7 @@ export default class MessageService {
       "with recipient",
       wsMessage.who,
       "to",
-      message.to
+      message.from
     );
     socket.send(serialize(wsMessage), errCb);
     this.logger.info("Received notification dispatched to", message.to);
