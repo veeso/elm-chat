@@ -8,7 +8,6 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import jimp from "jimp";
 import jsonwebtoken from "jsonwebtoken";
 import jwt from "express-jwt";
 import helmet from "helmet"; // secure express
@@ -16,6 +15,7 @@ import http from "http";
 import morgan from "morgan"; // Net logging
 import multer from "multer"; // handle multipart
 import { unlink, unlinkSync } from "fs";
+import enableWs, { WithWebsocketMethod } from "express-ws";
 // Misc
 import { Logger } from "log4js";
 // Lib
@@ -28,7 +28,7 @@ import Message from "../lib/data/message";
 import Jimp from "jimp";
 
 export default class HttpService {
-  private service: express.Express;
+  private service: express.Application & WithWebsocketMethod;
   private server: http.Server;
   private chat: MessageService;
   private avatarUploadHnd: ReturnType<typeof multer>;
@@ -44,14 +44,16 @@ export default class HttpService {
   constructor(port: number, assetsDir: string) {
     this.logger = getLogger("httpService");
     // Configure express
-    this.service = express();
-    this.service.use(bodyParser.json({ limit: "50mb" }));
+    const service = express();
+    service.use(bodyParser.json({ limit: "50mb" }));
     // Configure Morgan
-    this.service.use(morgan("dev"));
+    service.use(morgan("dev"));
     // Helmet
-    this.service.use(helmet());
+    service.use(helmet());
     // Cookie parser
-    this.service.use(cookieParser());
+    service.use(cookieParser());
+    // Enable ws
+    this.service = enableWs(service).app;
     // Multer
     this.avatarUploadHnd = multer({ dest: assetsDir + "/avatar/" });
     // Make jwt secret
@@ -532,12 +534,19 @@ export default class HttpService {
 
     // WebSockets Handler
 
-    this.server.on("upgrade", (req, socket, head) => {
-      // Let's access the username
+    this.service.ws('/', (ws, req) => {
       const username = req.user.username;
-      this.logger.debug(username, "has started a websockets session");
-      this.chat.accept(req, socket, head, username);
+      this.logger.debug("New connection from websocket from user", username);
+      this.chat.onConnection(ws, req, username);
     });
+
+    //this.server.on("upgrade", (req, socket, head) => {
+    //  // Let's access the username
+    //  const username = req.user.username;
+    //  this.logger.debug(username, "has started a websockets session");
+    //  this.chat.accept(req, socket, head, username);
+    //});
+
 
     this.logger.info("HTTP Service started!");
   }

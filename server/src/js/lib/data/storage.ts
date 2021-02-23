@@ -260,8 +260,8 @@ export default class Storage {
 
   /**
    * @description get inbox size
-   * @param {string} username 
-   * @param {string} other 
+   * @param {string} username
+   * @param {string} other
    * @returns {number}
    * @throws {Error}
    */
@@ -269,7 +269,9 @@ export default class Storage {
     // Get conversation
     let conversation = this.getConversation(username, other);
     // Filter conversation; message from other to us, unread
-    conversation = conversation.filter((msg) => (msg.to === username && !msg.read));
+    conversation = conversation.filter(
+      (msg) => msg.to === username && !msg.read
+    );
     return conversation.length;
   }
 
@@ -323,7 +325,11 @@ export default class Storage {
    */
   private notifyReadSubscriber(msg: Message) {
     for (const cb of this.readSubscriptions) {
-      cb(msg);
+      try {
+        cb(msg);
+      } catch (err) {
+        continue;
+      }
     }
   }
 
@@ -333,7 +339,11 @@ export default class Storage {
    */
   private notifyRecvSubscriber(msg: Message) {
     for (const cb of this.recvSubscriptions) {
-      cb(msg);
+      try {
+        cb(msg);
+      } catch (err) {
+        continue;
+      }
     }
   }
 
@@ -343,7 +353,11 @@ export default class Storage {
    */
   private notifyOnMessageSubscriber(msg: Message) {
     for (const cb of this.onMessageSubscriptions) {
-      cb(msg);
+      try {
+        cb(msg);
+      } catch (err) {
+        continue;
+      }
     }
   }
 
@@ -353,7 +367,11 @@ export default class Storage {
    */
   private notifyOnUserJoined(user: User) {
     for (const cb of this.onUserJoinedSubscriptions) {
-      cb(user);
+      try {
+        cb(user);
+      } catch (err) {
+        continue;
+      }
     }
   }
 
@@ -363,7 +381,11 @@ export default class Storage {
    */
   private notifyOnUserOnline(user: User) {
     for (const cb of this.onUserOnlineSubscriptions) {
-      cb(user);
+      try {
+        cb(user);
+      } catch (err) {
+        continue;
+      }
     }
   }
 }

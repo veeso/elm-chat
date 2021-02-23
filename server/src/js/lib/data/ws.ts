@@ -272,9 +272,10 @@ export function sessionExpired(): WsMessage {
 /**
  * @description serialize a message into an object
  * @param {WsMessage} message
+ * @returns {string}
  */
 
-export function serialize(message: WsMessage): any {
+export function serialize(message: WsMessage): string {
   let type = "";
   switch (message.type) {
     case WsMessageType.Delivery:
@@ -301,7 +302,7 @@ export function serialize(message: WsMessage): any {
     default:
       throw new Error("Unknown message type: " + message.type);
   }
-  return {
+  return JSON.stringify({
     type: type,
     who: message.who,
     ref: message.ref,
@@ -311,5 +312,5 @@ export function serialize(message: WsMessage): any {
     username: message.username,
     lastActivity: message.lastActivity,
     online: message.online,
-  };
+  });
 }

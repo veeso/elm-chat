@@ -25,7 +25,6 @@ import Storage from "../lib/data/storage";
 import User from "../lib/data/user";
 
 export default class MessageService {
-  private wsServer: WebSocket.Server;
   private channels: Map<string, WebSocket>; // Association between username and socket
   private logger: Logger;
   private store: Storage;
@@ -57,29 +56,31 @@ export default class MessageService {
     });
     // Make logger
     this.logger = getLogger("messageService");
-    // Start web sockets
-    this.wsServer = new WebSocket.Server({ noServer: true });
-    // Add listeners
-    this.wsServer.on(
-      "connection",
-      (socket: WebSocket, _request: http.IncomingMessage, username: string) => {
-        // Register socket to channels
-        this.logger.info("New websockets connection from", username);
-        this.channels.set(username, socket);
-        // Register listener for this socket
-        socket.on("message", (message: WebSocket.Data) => {
-          this.dispatchMessage(username, socket, message);
-        });
-        // Register on close
-        socket.on("close", () => {
-          this.logger.info("Client", username, "has left chat!");
-          // Clear socket entry
-          socket.close();
-          this.channels.delete(username);
-        });
-      }
-    );
     this.logger.info("Message service started!");
+  }
+
+  /**
+   * @description method to call to register a new websocket connection
+   * @param {WebSocket} socket 
+   * @param {http.IncomingMessage} _request 
+   * @param {string} username 
+   */
+
+  public onConnection(socket: WebSocket, _request: http.IncomingMessage, username: string) {
+    // Register socket to channels
+    this.logger.info("New websockets connection from", username);
+    this.channels.set(username, socket);
+    // Register listener for this socket
+    socket.on("message", (message: WebSocket.Data) => {
+      this.dispatchMessage(username, socket, message);
+    });
+    // Register on close
+    socket.on("close", () => {
+      this.logger.info("Client", username, "has left chat!");
+      // Clear socket entry
+      socket.close();
+      this.channels.delete(username);
+    });
   }
 
   /**
@@ -89,30 +90,17 @@ export default class MessageService {
 
   public stop(onStopped: Function | undefined = undefined) {
     this.logger.info("Stopping message service...");
-    // Stop server
-    this.wsServer.close();
+    // Stop sockets
+    this.channels.forEach((socket: WebSocket, name: string) => {
+      this.logger.debug("Closing socket for", name);
+      socket.close();
+    });
     // Clear entries
     this.channels.clear();
     this.logger.info("Message service stopped!");
     if (onStopped) {
       onStopped();
     }
-  }
-
-  /**
-   * @description accept a new websockets connection
-   * @param req
-   * @param socket
-   * @param head
-   * @param {string} client
-   */
-
-  public accept(req: any, socket: any, head: any, client: string) {
-    this.logger.debug("Handling upgrade for", client);
-    this.wsServer.handleUpgrade(req, socket, head, (ws) => {
-      this.wsServer.emit("connection", ws, req, client);
-      this.logger.debug("Emitted connection event for", client);
-    });
   }
 
   /**
@@ -124,7 +112,7 @@ export default class MessageService {
 
   private dispatchMessage(
     client: string,
-    socket: WebSocket,
+    _socket: WebSocket,
     message: WebSocket.Data
   ) {
     let wsMessage: WsMessage;
