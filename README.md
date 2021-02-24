@@ -2,6 +2,10 @@
 
 Developed by Christian Visintin
 
+![Explorer](docs/elm-chat.gif)
+
+---
+
 - [Elm - Chat](#elm---chat)
   - [Introduction](#introduction)
   - [Project tree](#project-tree)
