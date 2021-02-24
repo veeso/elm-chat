@@ -19,6 +19,7 @@ import {
   makeRead,
   makeReceived,
   makeUserJoined,
+  makeUserOnline,
 } from "../lib/data/ws";
 import Message from "../lib/data/message";
 import Storage from "../lib/data/storage";
@@ -302,7 +303,7 @@ export default class MessageService {
       }
     };
     // Serialize message
-    const outMessage: WsMessage = makeUserJoined(user);
+    const outMessage: WsMessage = makeUserOnline(user);
     // Iterate over channels
     Array.from(this.channels.keys()).map((username) => {
       // If username is different from user.username, send the message
