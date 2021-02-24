@@ -5,7 +5,7 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.User exposing (User, addUser, clearUserInbox, fromAuthorization, incrUserInbox, incrementInboxSizeForUser, sortUsers, updateUserStatus, userDecoder, usersDecoder)
+module Data.User exposing (User, addUser, clearInboxSizeForUser, clearUserInbox, fromAuthorization, incrUserInbox, incrementInboxSizeForUser, sortUsers, updateUserStatus, userDecoder, usersDecoder)
 
 -- Dependencies
 
@@ -93,6 +93,27 @@ incrementInboxSizeForUser users username =
         first :: more ->
             (if first.username == username then
                 incrUserInbox first
+
+             else
+                first
+            )
+                :: incrementInboxSizeForUser more username
+
+
+{-| Clear the inbox size for a certain user
+
+    updateUserStatus [...] "omar"
+
+-}
+clearInboxSizeForUser : List User -> String -> List User
+clearInboxSizeForUser users username =
+    case users of
+        [] ->
+            []
+
+        first :: more ->
+            (if first.username == username then
+                clearUserInbox first
 
              else
                 first
