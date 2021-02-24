@@ -211,7 +211,7 @@ export default class MessageService {
       message.from
     );
     socket.send(serialize(wsMessage), errCb);
-    this.logger.info("Read notification dispatched to", message.to);
+    this.logger.info("Read notification dispatched to", message.from);
   }
 
   /**
@@ -246,7 +246,7 @@ export default class MessageService {
       message.from
     );
     socket.send(serialize(wsMessage), errCb);
-    this.logger.info("Received notification dispatched to", message.to);
+    this.logger.info("Received notification dispatched to", message.from);
   }
 
   /**
