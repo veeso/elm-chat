@@ -224,10 +224,10 @@ viewMessageState received read =
                     "bi-eye-fill"
 
                  else if received then
-                    "by-inbox-fill"
+                    "bi-inbox-fill"
 
                  else
-                    "clock-fill"
+                    "bi-clock-fill"
                 )
             ]
             []
