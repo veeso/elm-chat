@@ -118,7 +118,7 @@ clearInboxSizeForUser users username =
              else
                 first
             )
-                :: incrementInboxSizeForUser more username
+                :: clearInboxSizeForUser more username
 
 
 {-| Increment user inbox size by one

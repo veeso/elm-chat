@@ -108,7 +108,7 @@ update msg model =
         -- Users
         UserSelected user ->
             -- Select user; clear its inbox and download the conversation for it
-            ( { model | selectedUser = Just (Users.clearUserInbox user), users = (Users.clearInboxSizeForUser model.users user.username), conversation = [] }, ApiMessages.getConversation user.username GotConversation )
+            ( { model | selectedUser = Just (Users.clearUserInbox user), users = Users.clearInboxSizeForUser model.users user.username, conversation = [] }, ApiMessages.getConversation user.username GotConversation )
 
         GotUsers result ->
             case result of
