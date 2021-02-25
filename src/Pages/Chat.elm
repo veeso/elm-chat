@@ -388,10 +388,10 @@ viewOtherUserLastActivity lastActivity =
 viewChatBody : Model -> Html Msg
 viewChatBody model =
     div [ class "row", css [ height (pct 100) ] ]
-        [ div [ class "col-4", css [ overflowY auto, overflowX hidden, padding (px 0) ] ]
+        [ div [ class "col-4", css [ height (pct 100), position relative, overflowY auto, overflowX hidden, padding (px 0) ] ]
             [ viewUserList model.users model.selectedUser
             ]
-        , div [ class "col-8", css [ borderLeft3 (px 1) solid (hex "cccccc"), overflow auto, padding (px 0) ] ]
+        , div [ class "col-8", css [ height (pct 100), borderLeft3 (px 1) solid (hex "cccccc"), overflow auto, padding (px 0) ] ]
             [ ConversationView.viewConversation model.conversation model.client.username
             ]
         ]
@@ -441,7 +441,6 @@ viewBottom model =
         ]
         [ div
             [ class "col-4"
-            , css [ backgroundColor (hex "ededed"), bottom (px 0), width (vw 100) ]
             ]
             []
         , viewInputArea model.userInput (isJust model.selectedUser)
@@ -458,7 +457,7 @@ viewInputArea : String -> Bool -> Html Msg
 viewInputArea message userIsSelected =
     div
         [ class "col-8"
-        , css [ backgroundColor (hex "ededed"), padding (Css.em 1) ]
+        , css [ padding (Css.em 1) ]
         ]
         [ input
             [ class "form-text"
