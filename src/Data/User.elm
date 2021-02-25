@@ -5,13 +5,14 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Data.User exposing (User, addUser, clearInboxSizeForUser, clearUserInbox, fromAuthorization, incrUserInbox, incrementInboxSizeForUser, sortUsers, updateUserStatus, userDecoder, usersDecoder)
+module Data.User exposing (User, addUser, clearInboxSizeForUser, clearUserInbox, encodeUser, fromAuthorization, incrUserInbox, incrementInboxSizeForUser, sortUsers, updateUserStatus, userDecoder, usersDecoder)
 
 -- Dependencies
 
 import Data.Auth
 import Iso8601
 import Json.Decode exposing (Decoder, bool, field, int, list, map5, maybe, string)
+import Json.Encode
 import Time exposing (Posix)
 
 
@@ -178,3 +179,23 @@ userDecoder =
         (field "lastActivity" Iso8601.decoder)
         (field "online" bool)
         (field "inboxSize" int)
+
+
+{-| Encodes a User entity to JSON
+-}
+encodeUser : User -> Json.Encode.Value
+encodeUser user =
+    Json.Encode.object
+        [ ( "username", Json.Encode.string user.username )
+        , ( "avatar"
+          , case user.avatar of
+                Just avatar ->
+                    Json.Encode.string avatar
+
+                Nothing ->
+                    Json.Encode.null
+          )
+        , ( "lastActivity", Iso8601.encode user.lastActivity )
+        , ( "online", Json.Encode.bool user.online )
+        , ( "inboxSize", Json.Encode.int user.inboxSize )
+        ]

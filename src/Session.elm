@@ -5,10 +5,12 @@
 --  for more information, please refer to <https://unlicense.org>
 
 
-module Session exposing (Session(..), getNavKey, getUser, signIn, signOut)
+module Session exposing (Session(..), encodeSession, getNavKey, getUser, sessionDecoder, signIn, signOut)
 
 import Browser.Navigation as Nav
-import Data.User exposing (User)
+import Data.User exposing (User, userDecoder)
+import Json.Decode exposing (Decoder, andThen, field, maybe, succeed)
+import Json.Encode
 
 
 type Session
@@ -53,9 +55,37 @@ getNavKey session =
         Guest key ->
             key
 
--- Subscribers
 
---changed : (Session -> msg) -> Nav.Key -> Sub msg
---changed toMsg key =
---    Api.viewerChanges (\maybeViewer -> toMsg (fromViewer key maybeViewer)) Viewer.decoder
 
+-- En/decoding
+
+
+{-| Decodes a User entity from JSON and deserializes it into a User
+-}
+sessionDecoder : Nav.Key -> Decoder Session
+sessionDecoder nav =
+    maybe (field "user" userDecoder) |> andThen (sessionDecoderWrapper nav)
+
+
+{-| Make session type from user value
+-}
+sessionDecoderWrapper : Nav.Key -> Maybe User -> Decoder Session
+sessionDecoderWrapper nav user =
+    case user of
+        Just u ->
+            succeed <| Authed nav u
+
+        Nothing ->
+            succeed <| Guest nav
+
+
+{-| Encode session object
+-}
+encodeSession : Session -> Json.Encode.Value
+encodeSession session =
+    case session of
+        Authed _ user ->
+            Json.Encode.object [ ( "user", Data.User.encodeUser user ) ]
+
+        Guest _ ->
+            Json.Encode.object []

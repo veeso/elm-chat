@@ -16,8 +16,8 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes as Attributes exposing (class, css, for, id, type_, value)
 import Html.Styled.Events exposing (on, onClick, onFocus, onInput)
 import Http
+import Ports exposing (setSession)
 import Request.Auth as ApiAuth
-import Route
 import Session exposing (Session)
 import Utils exposing (fmtHttpError, getFilesFromInput, isAlphanumerical, isPasswordSafe)
 import Views.Alert as Alert
@@ -139,9 +139,13 @@ update msg model =
         GotAuthResult result ->
             case result of
                 Ok authorization ->
-                    -- Go to chat page
-                    ( { model | session = Session.signIn model.session <| User.fromAuthorization authorization }
-                    , Route.replaceUrl (Session.getNavKey model.session) Route.Chat
+                    -- Go to chat page and set session in storage
+                    let
+                        session =
+                            Session.signIn model.session <| User.fromAuthorization authorization
+                    in
+                    ( { model | session = session }
+                    , setSession <| Session.encodeSession session
                     )
 
                 Err err ->

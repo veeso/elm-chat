@@ -16,12 +16,11 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (class, css, placeholder, readonly, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Http
-import Json.Decode
-import Ports
+import Json.Decode as JD
+import Ports exposing (setSession)
 import Request.Auth as ApiAuth
 import Request.Messages as ApiMessages
 import Request.User as ApiUsers
-import Route
 import Session exposing (Session)
 import Time
 import Utils exposing (fmtHttpError, isJust, prettyDateFormatter)
@@ -78,7 +77,6 @@ type Msg
     | MarkedAsRead (Result Http.Error String)
     | MarkedAsRecv (Result Http.Error String)
     | GotWsMessage String
-    | ParsedWsMessage (Result Json.Decode.Error WsMessage)
     | SignOut
     | SignedOut (Result Http.Error ())
     | Error String
@@ -162,8 +160,13 @@ update msg model =
         SignedOut result ->
             case result of
                 Ok _ ->
-                    -- Invalidate session and go to sign in
-                    ( { model | session = Session.signOut model.session }, Route.replaceUrl (Session.getNavKey model.session) Route.SignIn )
+                    let
+                        -- Invalidate session
+                        session =
+                            Session.signOut model.session
+                    in
+                    -- Change session in model and report to local storage
+                    ( { model | session = session }, setSession <| Session.encodeSession session )
 
                 Err err ->
                     update (Error (fmtHttpError err Nothing)) model
@@ -178,16 +181,13 @@ update msg model =
         -- Websockets
         GotWsMessage body ->
             -- Parse ws message body
-            update (ParsedWsMessage <| Json.Decode.decodeString Data.WsMessage.wsMessageDecoder body) model
-
-        ParsedWsMessage result ->
-            case result of
+            case JD.decodeString Data.WsMessage.wsMessageDecoder body of
                 Ok wsmessage ->
                     handleWsMessage model wsmessage
 
                 Err error ->
                     -- Set error as string
-                    update (Error <| Json.Decode.errorToString error) model
+                    update (Error <| JD.errorToString error) model
 
 
 {-| Update model based on the WsMessage type
@@ -255,7 +255,12 @@ handleWsMessage model wsmessage =
 
         Data.WsMessage.SessionExpired ->
             -- Go back to login
-            ( { model | session = Session.signOut model.session }, Route.replaceUrl (Session.getNavKey model.session) Route.SignIn )
+            let
+                -- Invalidate session
+                session =
+                    Session.signOut model.session
+            in
+            ( { model | session = session }, setSession <| Session.encodeSession session )
 
 
 {-| Mark all messages sent to us as read and notify remote

@@ -25,8 +25,19 @@
   <body>
     <!-- Run elm application -->
     <script type="text/javascript">
-      const app = Elm.Main.init();
+      // @! Consts
+      const STORAGE_ELM_CHAT_SESSION = "elm-chat-session";
 
+      // Get session if possible
+      const storageData = localStorage.getItem(STORAGE_ELM_CHAT_SESSION);
+      const flags = storageData ? JSON.parse(storageData) : null;
+
+      // @! Init, pass session as flag
+      const app = Elm.Main.init({
+        flags: flags,
+      });
+
+      // @! Websockets
       // Connect to websockets on 'startChat' message
       app.ports.startChat.subscribe(function (message) {
         // Connect and add listener
@@ -45,6 +56,14 @@
           // Send message to client through `chatMessageReceiver` port
           app.ports.chatMessageReceiver.send(event.data);
         });
+      });
+
+      // @! Local storage
+
+      app.ports.setSession.subscribe(function (session) {
+        localStorage.setItem(STORAGE_ELM_CHAT_SESSION, JSON.stringify(session));
+        // Send new state
+        app.ports.sessionChanged.send(session);
       });
     </script>
   </body>

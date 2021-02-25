@@ -14,9 +14,12 @@ import Data.User as User
 import Html
 import Html.Styled exposing (..)
 import Http
+import Json.Decode as JD
+import Json.Encode as JE
 import Pages.Chat as Chat
 import Pages.NotFound as PageNotFound
 import Pages.SignIn as SignIn
+import Ports
 import Request.Auth as ApiAuth
 import Route exposing (Route)
 import Session exposing (Session)
@@ -44,9 +47,18 @@ type alias Model =
 -- init
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
-    ( { session = Session.Guest key
+init : JE.Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
+    let
+        session =
+            case JD.decodeValue (Session.sessionDecoder key) flags of
+                Ok s ->
+                    s
+
+                Err _ ->
+                    Session.Guest key
+    in
+    ( { session = session
       , view = Redirect url
       }
     , ApiAuth.authed AuthedResult
@@ -63,6 +75,7 @@ type Msg
     | AuthedResult (Result Http.Error Authorization)
     | FromChat Chat.Msg
     | FromSignIn SignIn.Msg
+    | SessionChanged JD.Value
 
 
 
@@ -113,7 +126,7 @@ update msg model =
                     Chat.update submsg submodel
             in
             -- Update submodel and session
-            ( updateSubmodelAndSession model (Tuple.first newState).session (ChatView <| Tuple.first newState)
+            ( updateSubmodel model (ChatView <| Tuple.first newState)
             , Cmd.map FromChat <| Tuple.second newState
             )
 
@@ -124,9 +137,27 @@ update msg model =
                     SignIn.update submsg submodel
             in
             -- Update submodel and session
-            ( updateSubmodelAndSession model (Tuple.first newState).session (SignInView <| Tuple.first newState)
+            ( updateSubmodel model (SignInView <| Tuple.first newState)
             , Cmd.map FromSignIn <| Tuple.second newState
             )
+
+        ( SessionChanged rawSession, _ ) ->
+            -- Decode session and set it to model; then change route based on session state
+            case JD.decodeValue (Session.sessionDecoder (Session.getNavKey model.session)) rawSession of
+                Ok session ->
+                    let
+                        action = case session of
+                            Session.Authed _ _ ->
+                                Route.replaceUrl (Session.getNavKey model.session) Route.Chat
+                            
+                            Session.Guest _ ->
+                                Route.replaceUrl (Session.getNavKey model.session) Route.SignIn
+                    in
+                    
+                    ( { model | session = session }, action )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
         ( _, _ ) ->
             -- Ignore message with incoherent view
@@ -184,26 +215,36 @@ viewBlank =
 -- SUBSCRIPTIONS
 
 
+{-| Subscriptions to these messages:
+
+    - Ports.sessionChanged -> reported when someone sets the session in the local storage
+    - Subscriptions from views
+        - ChatView: handles messages incoming from WS
+
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model.view of
-        ChatView submodel ->
-            -- Handle subscription for chat view
-            Sub.map FromChat (Chat.subscriptions submodel)
+    Sub.batch
+        [ Ports.sessionChanged SessionChanged
+        , case model.view of
+            ChatView submodel ->
+                -- Handle subscription for chat view
+                Sub.map FromChat (Chat.subscriptions submodel)
 
-        _ ->
-            Sub.none
+            _ ->
+                Sub.none
+        ]
 
 
 
 -- Functions
 
 
-{-| Update model's submodel and session
+{-| Update model's submodel
 -}
-updateSubmodelAndSession : Model -> Session -> PageView -> Model
-updateSubmodelAndSession initModel session newView =
-    { initModel | view = newView, session = session }
+updateSubmodel : Model -> PageView -> Model
+updateSubmodel initModel newView =
+    { initModel | view = newView }
 
 
 {-| Change page location
@@ -269,7 +310,7 @@ tryGoToChat model =
 -- Main
 
 
-main : Program () Model Msg
+main : Program JE.Value Model Msg
 main =
     Browser.application
         { init = init
